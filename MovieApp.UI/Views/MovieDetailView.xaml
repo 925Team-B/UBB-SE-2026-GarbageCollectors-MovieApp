@@ -1,0 +1,380 @@
+<!-- MovieDetailView: Full movie details, reviews, extra reviews, comments -->
+<UserControl
+    x:Class="MovieApp.UI.Views.MovieDetailView"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:components="using:MovieApp.UI.Views.Components"
+    xmlns:models="using:MovieApp.Core.Models">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="MovieDetailCommentTemplate" x:DataType="models:Comment">
+            <StackPanel>
+                <Border Padding="12" Margin="0,2"
+                        CornerRadius="6"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock FontWeight="SemiBold" FontSize="13">
+                                <Run Text="User #"/>
+                                <Run Text="{x:Bind AuthorDisplayId}"/>
+                            </TextBlock>
+                            <TextBlock Text="{x:Bind CreatedAt}" FontSize="11"
+                                       HorizontalAlignment="Right"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        </Grid>
+
+                        <TextBlock Text="{x:Bind Content}" TextWrapping="Wrap"
+                                   Margin="0,4,0,0"/>
+
+                        <Button Content="Reply"
+                                Tag="{x:Bind MessageId}"
+                                Click="ReplyButton_Click"
+                                HorizontalAlignment="Left"
+                                Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl ItemsSource="{x:Bind Replies}"
+                              ItemTemplate="{StaticResource MovieDetailCommentTemplate}"
+                              Margin="24,6,0,0"/>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="20">
+        <ScrollViewer x:Name="MovieDetailScrollViewer" VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="900" HorizontalAlignment="Center">
+
+                <!-- Back Button -->
+                <Button Content="← Back to Catalog"
+                        Command="{x:Bind ViewModel.BackCommand}"
+                        Margin="0,0,0,16"
+                        Style="{ThemeResource AccentButtonStyle}"/>
+
+                <!-- Movie Header -->
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" CornerRadius="8" Width="140" Height="210">
+                        <Image Source="{x:Bind ViewModel.Movie.PosterUrl, Mode=OneWay}"
+                               Stretch="UniformToFill"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind ViewModel.Movie.Title, Mode=OneWay}"
+                                   FontSize="28" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock FontSize="16" Margin="0,8,0,0"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                            <Run Text="{x:Bind ViewModel.Movie.Year, Mode=OneWay}"/>
+                            <Run Text=" • "/>
+                            <Run Text="{x:Bind ViewModel.Movie.Genre, Mode=OneWay}"/>
+                        </TextBlock>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <TextBlock Text="⭐" FontSize="20"/>
+                            <TextBlock Text="{x:Bind ViewModel.AverageRating, Mode=OneWay}"
+                                       FontSize="24" FontWeight="Bold" Margin="8,0,0,0"/>
+                            <TextBlock Text=" / 5.0" FontSize="16"
+                                       VerticalAlignment="Bottom" Margin="0,0,0,2"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Status Message -->
+                <InfoBar x:Name="StatusBar"
+                         Title="Status"
+                         Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                         IsOpen="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringNotEmptyToBool}}"
+                         Severity="Informational"
+                         Margin="0,0,0,16"/>
+
+                <!-- External Reviews Section -->
+                <TextBlock Text="🎭 Critic Reviews" FontSize="20" FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <ProgressRing IsActive="{x:Bind ViewModel.IsLoadingExternalReviews, Mode=OneWay}"
+                              Visibility="{x:Bind ViewModel.IsLoadingExternalReviews, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                              Width="40" Height="40" Margin="0,8,0,8"/>
+
+                <ItemsControl ItemsSource="{x:Bind ViewModel.ExternalReviews}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:CriticReview">
+                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    CornerRadius="8" Padding="16" Margin="0,4">
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock Text="{x:Bind Source}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{x:Bind ScoreDisplay}" HorizontalAlignment="Right"
+                                                   FontWeight="Bold" FontSize="16"
+                                                   Visibility="{x:Bind HasScore, Converter={StaticResource BoolToVisibility}}"/>
+                                    </Grid>
+                                    <TextBlock Text="{x:Bind Headline}" FontStyle="Italic"
+                                               Margin="0,4,0,0"/>
+                                    <TextBlock Text="{x:Bind Snippet}" TextWrapping="Wrap"
+                                               Margin="0,4,0,0"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Aggregate Scores -->
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                        <TextBlock Text="Critic Score" FontSize="12"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.CriticScore, Mode=OneWay}"
+                                   FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                        <TextBlock Text="Audience Score" FontSize="12"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.AudienceScore, Mode=OneWay}"
+                                   FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Center"
+                                Visibility="{x:Bind ViewModel.IsPolarized, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="⚡ Polarized" FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Critics &amp; audience disagree" FontSize="11"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Lexicon Words -->
+                <TextBlock Text="📊 Top Keywords" FontSize="16" FontWeight="SemiBold"
+                           Margin="0,16,0,4"/>
+                <ItemsControl ItemsSource="{x:Bind ViewModel.LexiconWords}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="8"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="12" Padding="8,4">
+                                <TextBlock Text="{x:Bind}" FontSize="12"
+                                           Foreground="White"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        Margin="0,20,0,20"/>
+
+                <!-- Add Review Section -->
+                <TextBlock Text="✍️ Write a Review" FontSize="20" FontWeight="SemiBold"
+                           Margin="0,0,0,8"
+                           Visibility="{x:Bind ViewModel.HasUserReview, Mode=OneWay, Converter={StaticResource BoolToVisibilityInverter}, FallbackValue=Visible}"/>
+
+                <StackPanel Visibility="{x:Bind ViewModel.HasUserReview, Mode=OneWay, Converter={StaticResource BoolToVisibilityInverter}, FallbackValue=Visible}">
+                    <TextBlock Text="Star Rating (0-5):" Margin="0,0,0,4"/>
+					<components:StarSlider Value="{x:Bind ViewModel.NewReviewRating, Mode=TwoWay}"
+                           HorizontalAlignment="Center" />
+                    <TextBox PlaceholderText="Write your review (max 5000 characters)..."
+                             Text="{x:Bind ViewModel.NewReviewContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             Height="120" Margin="0,8,0,0"/>
+                    <Button Content="Submit Review"
+                            Command="{x:Bind ViewModel.SubmitReviewCommand}"
+                            Style="{ThemeResource AccentButtonStyle}"
+                            Margin="0,8,0,0"/>
+                </StackPanel>
+
+                <!-- Extra Review Button -->
+                <Button Content="📝 Add Extra Review"
+                        Command="{x:Bind ViewModel.ShowExtraReviewFormCommand}"
+                        Visibility="{x:Bind ViewModel.HasUserReview, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                        Margin="0,12,0,0"/>
+
+                <!-- Extra Review Form -->
+                <StackPanel Visibility="{x:Bind ViewModel.ShowExtraReviewForm, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                            Margin="0,12,0,0"
+                            Padding="16" CornerRadius="8"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <TextBlock Text="Extended Review" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Main Extended Review Text (500-12000 chars):" Margin="0,0,0,4"/>
+                    <TextBox Text="{x:Bind ViewModel.MainExtraText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="100"/>
+
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Cinematography -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+                            <TextBlock Text="🎥 Cinematography Rating (0-5):"/>
+                            <NumberBox Value="{x:Bind ViewModel.CinRating, Mode=TwoWay}" Minimum="0" Maximum="5"/>
+                        </StackPanel>
+                        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"
+                                 PlaceholderText="Cinematography text (50-2000 chars)"
+                                 Text="{x:Bind ViewModel.CinText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" Height="60"/>
+
+                        <!-- Acting -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,8">
+                            <TextBlock Text="🎭 Acting Rating (0-5):"/>
+                            <NumberBox Value="{x:Bind ViewModel.ActingRating, Mode=TwoWay}" Minimum="0" Maximum="5"/>
+                        </StackPanel>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"
+                                 PlaceholderText="Acting text (50-2000 chars)"
+                                 Text="{x:Bind ViewModel.ActingText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" Height="60"/>
+
+                        <!-- CGI -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,8,8">
+                            <TextBlock Text="💫 CGI Rating (0-5):"/>
+                            <NumberBox Value="{x:Bind ViewModel.CgiRating, Mode=TwoWay}" Minimum="0" Maximum="5"/>
+                        </StackPanel>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"
+                                 PlaceholderText="CGI text (50-2000 chars)"
+                                 Text="{x:Bind ViewModel.CgiText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" Height="60"/>
+
+                        <!-- Plot -->
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,8,8">
+                            <TextBlock Text="📖 Plot Rating (0-5):"/>
+                            <NumberBox Value="{x:Bind ViewModel.PlotRating, Mode=TwoWay}" Minimum="0" Maximum="5"/>
+                        </StackPanel>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"
+                                 PlaceholderText="Plot text (50-2000 chars)"
+                                 Text="{x:Bind ViewModel.PlotText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" Height="60"/>
+
+                        <!-- Sound -->
+                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,8,8">
+                            <TextBlock Text="🔊 Sound Rating (0-5):"/>
+                            <NumberBox Value="{x:Bind ViewModel.SoundRating, Mode=TwoWay}" Minimum="0" Maximum="5"/>
+                        </StackPanel>
+                        <TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,8"
+                                 PlaceholderText="Sound text (50-2000 chars)"
+                                 Text="{x:Bind ViewModel.SoundText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" Height="60"/>
+                    </Grid>
+
+                    <Button Content="Submit Extra Review"
+                            Command="{x:Bind ViewModel.SubmitExtraReviewCommand}"
+                            Style="{ThemeResource AccentButtonStyle}"
+                            Margin="0,12,0,0"/>
+                </StackPanel>
+
+                <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        Margin="0,20,0,20"/>
+
+                <!-- Reviews List -->
+                <TextBlock Text="📋 User Reviews" FontSize="20" FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Reviews}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:Review">
+                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    CornerRadius="8" Padding="16" Margin="0,4">
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock FontWeight="SemiBold">
+                                            <Run Text="User #"/>
+                                             <Run Text="{x:Bind UserDisplayId}"/>
+                                        </TextBlock>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="⭐" Margin="0,0,4,0"/>
+                                            <TextBlock Text="{x:Bind StarRating}" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Text="{x:Bind Content}" TextWrapping="Wrap"
+                                               Margin="0,8,0,0"/>
+                                    <TextBlock FontSize="11" Margin="0,8,0,0"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               Text="{x:Bind CreatedAt}"/>
+                                    <TextBlock Text="✅ Extended Review"
+                                               Visibility="{x:Bind IsExtraReview, Converter={StaticResource BoolToVisibility}}"
+                                               Foreground="Green" FontSize="12" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        Margin="0,20,0,20"/>
+
+                <!-- Comments Section -->
+                <TextBlock Text="💬 Comments" FontSize="20" FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             PlaceholderText="Write a comment..."
+                             Text="{x:Bind ViewModel.NewCommentContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MaxLength="10000"
+                             Margin="0,0,8,0"/>
+                    <Button Grid.Column="1" Content="Post"
+                            Command="{x:Bind ViewModel.AddCommentCommand}"
+                            Style="{ThemeResource AccentButtonStyle}"/>
+                </Grid>
+
+				<Border x:Name="ReplyEditorBorder"
+										Visibility="Collapsed"
+										Background="{ThemeResource LayerFillColorDefaultBrush}"
+										Padding="12" Margin="0,0,0,12" CornerRadius="8">
+					<StackPanel>
+						<TextBlock Text="Replying to comment..." FontWeight="SemiBold" Margin="0,0,0,8"/>
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+
+							<TextBox Grid.Column="0"
+                                     PlaceholderText="Write your reply..."
+                                     Text="{x:Bind ViewModel.ReplyContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,8,0"/>
+
+							<Button Grid.Column="1" Content="Cancel"
+                                    Command="{x:Bind ViewModel.CancelReplyCommand}"
+                                    Click="CancelReply_Click"
+                                    Margin="0,0,8,0"/>
+
+							<Button Grid.Column="2" Content="Submit Reply"
+                                    Command="{x:Bind ViewModel.SubmitReplyCommand}"
+                                    Style="{ThemeResource AccentButtonStyle}"/>
+						</Grid>
+					</StackPanel>
+				</Border>
+                <ItemsControl ItemsSource="{x:Bind ViewModel.RootComments}"
+                              ItemTemplate="{StaticResource MovieDetailCommentTemplate}"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

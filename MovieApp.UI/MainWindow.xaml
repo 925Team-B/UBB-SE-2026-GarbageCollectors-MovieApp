@@ -1,0 +1,35 @@
+<!-- Copyright (c) MovieApp. All rights reserved. -->
+<Window
+    x:Class="MovieApp.UI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MovieApp.UI"
+    xmlns:views="using:MovieApp.UI.Views"
+    Title="MovieApp — Your Movie Companion">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <!-- Movie Detail View (overlay) -->
+        <Grid x:Name="MovieDetailOverlay" Visibility="Collapsed" Canvas.ZIndex="10">
+            <views:MovieDetailView x:Name="MovieDetailViewControl" />
+        </Grid>
+
+        <!-- Main TabView -->
+        <TabView x:Name="MainTabView"
+                 IsAddTabButtonVisible="False"
+                 TabWidthMode="Equal"
+                 VerticalAlignment="Stretch">
+            <TabViewItem Header="🎬 Catalog" IsClosable="False">
+                <views:CatalogView x:Name="CatalogViewControl" />
+            </TabViewItem>
+            <TabViewItem Header="⚔️ Battle Arena" IsClosable="False">
+                <views:BattleView x:Name="BattleViewControl" />
+            </TabViewItem>
+            <TabViewItem Header="💬 Forum" IsClosable="False">
+                <views:ForumView x:Name="ForumViewControl" />
+            </TabViewItem>
+            <TabViewItem Header="👤 Profile" IsClosable="False">
+                <views:ProfileView x:Name="ProfileViewControl" />
+            </TabViewItem>
+        </TabView>
+    </Grid>
+</Window>

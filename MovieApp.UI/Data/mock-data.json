@@ -1,0 +1,154 @@
+{
+  "NextReviewId": 3,
+  "NextCommentId": 4,
+  "NextBattleId": 2,
+  "NextStatsId": 4,
+  "Users": [
+    { "UserId": 1 },
+    { "UserId": 2 },
+    { "UserId": 3 }
+  ],
+  "Movies": [
+    {
+      "MovieId": 1,
+      "Title": "The Shawshank Redemption",
+      "Year": 1994,
+      "PosterUrl": "https://m.media-amazon.com/images/M/MV5BMDAyY2FhYjctNDc5OS00MDNlLThiMGUtY2UxYWVkNGY2ZjljXkEyXkFqcGc@._V1_.jpg",
+      "Genre": "Drama",
+      "AverageRating": 4.5
+    },
+    {
+      "MovieId": 2,
+      "Title": "The Dark Knight",
+      "Year": 2008,
+      "PosterUrl": "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
+      "Genre": "Action",
+      "AverageRating": 4.3
+    },
+    {
+      "MovieId": 3,
+      "Title": "Inception",
+      "Year": 2010,
+      "PosterUrl": "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
+      "Genre": "Sci-Fi",
+      "AverageRating": 4.2
+    },
+    {
+      "MovieId": 4,
+      "Title": "Pulp Fiction",
+      "Year": 1994,
+      "PosterUrl": "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjMDYtZjYwMjY2ZWU5ZjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
+      "Genre": "Crime",
+      "AverageRating": 4.4
+    },
+    {
+      "MovieId": 5,
+      "Title": "The Hangover",
+      "Year": 2009,
+      "PosterUrl": "https://m.media-amazon.com/images/M/MV5BNGQwZjg5YmYtY2VkNC00NzliLTljYTctNzI5NmU3MjE2ODQzXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
+      "Genre": "Comedy",
+      "AverageRating": 3.5
+    },
+    {
+      "MovieId": 6,
+      "Title": "Interstellar",
+      "Year": 2014,
+      "PosterUrl": "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg",
+      "Genre": "Sci-Fi",
+      "AverageRating": 4.6
+    }
+  ],
+  "Reviews": [
+    {
+      "ReviewId": 1,
+      "UserId": 2,
+      "MovieId": 1,
+      "StarRating": 4.5,
+      "Content": "Excellent movie with brilliant performances and unforgettable ending that still holds up after many years.",
+      "CreatedAt": "2026-01-01T10:00:00Z",
+      "IsExtraReview": false,
+      "CinematographyRating": 0,
+      "CinematographyText": null,
+      "ActingRating": 0,
+      "ActingText": null,
+      "CgiRating": 0,
+      "CgiText": null,
+      "PlotRating": 0,
+      "PlotText": null,
+      "SoundRating": 0,
+      "SoundText": null
+    },
+    {
+      "ReviewId": 2,
+      "UserId": 3,
+      "MovieId": 2,
+      "StarRating": 4.0,
+      "Content": "Strong superhero film with great pacing and amazing villain performance that elevates the entire experience.",
+      "CreatedAt": "2026-01-02T10:00:00Z",
+      "IsExtraReview": false,
+      "CinematographyRating": 0,
+      "CinematographyText": null,
+      "ActingRating": 0,
+      "ActingText": null,
+      "CgiRating": 0,
+      "CgiText": null,
+      "PlotRating": 0,
+      "PlotText": null,
+      "SoundRating": 0,
+      "SoundText": null
+    }
+  ],
+  "Comments": [
+    {
+      "MessageId": 1,
+      "AuthorId": 2,
+      "MovieId": 1,
+      "ParentCommentId": null,
+      "Content": "Still one of my favorites.",
+      "CreatedAt": "2026-01-03T10:00:00Z"
+    },
+    {
+      "MessageId": 2,
+      "AuthorId": 1,
+      "MovieId": 1,
+      "ParentCommentId": 1,
+      "Content": "Same here, the ending is perfect.",
+      "CreatedAt": "2026-01-03T12:00:00Z"
+    },
+    {
+      "MessageId": 3,
+      "AuthorId": 3,
+      "MovieId": 2,
+      "ParentCommentId": null,
+      "Content": "Heath Ledger was incredible.",
+      "CreatedAt": "2026-01-04T10:00:00Z"
+    }
+  ],
+  "Battles": [
+    {
+      "BattleId": 1,
+      "FirstMovieId": 1,
+      "SecondMovieId": 4,
+      "InitialRatingFirstMovie": 4.5,
+      "InitialRatingSecondMovie": 4.4,
+      "StartDate": "2026-01-05T00:00:00Z",
+      "EndDate": "2026-01-11T00:00:00Z",
+      "Status": "Active"
+    }
+  ],
+  "Bets": [],
+  "UserStats": [
+    { "StatsId": 1, "UserId": 1, "TotalPoints": 50, "WeeklyScore": 10 },
+    { "StatsId": 2, "UserId": 2, "TotalPoints": 30, "WeeklyScore": 5 },
+    { "StatsId": 3, "UserId": 3, "TotalPoints": 20, "WeeklyScore": 3 }
+  ],
+  "Badges": [
+    { "BadgeId": 1, "Name": "The Snob", "CriteriaValue": 10 },
+    { "BadgeId": 2, "Name": "The Super Serious", "CriteriaValue": 50 },
+    { "BadgeId": 3, "Name": "The Joker", "CriteriaValue": 70 },
+    { "BadgeId": 4, "Name": "The Godfather I", "CriteriaValue": 100 },
+    { "BadgeId": 5, "Name": "The Godfather II", "CriteriaValue": 200 },
+    { "BadgeId": 6, "Name": "The Godfather III", "CriteriaValue": 300 }
+  ],
+  "UserBadges": []
+}

@@ -1,0 +1,154 @@
+<!-- ProfileView: User profile with points and earned badges -->
+<UserControl
+    x:Class="MovieApp.UI.Views.ProfileView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:MovieApp.UI.ViewModels">
+
+    <Grid Padding="24">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="680" HorizontalAlignment="Center" Spacing="20">
+
+                <!-- Header -->
+                <TextBlock Text="My Profile"
+                           FontSize="28" FontWeight="Bold"/>
+
+                <!-- Points Card -->
+                <Border Background="{ThemeResource AccentFillColorDefaultBrush}"
+                        CornerRadius="16" Padding="36,28">
+                    <StackPanel HorizontalAlignment="Center" Spacing="4">
+                        <TextBlock Text="TOTAL POINTS"
+                                   FontSize="11" FontWeight="SemiBold"
+                                   CharacterSpacing="150"
+                                   Foreground="White" Opacity="0.75"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{x:Bind ViewModel.TotalPoints, Mode=OneWay}"
+                                   FontSize="64" FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Badges Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Badges" FontSize="20" FontWeight="SemiBold"/>
+
+                    <!-- All badges (locked + unlocked) in the original horizontal card style -->
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.AllBadges, Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:BadgeDisplayItem">
+                                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            CornerRadius="12" Padding="20" Margin="0,0,12,0"
+                                            MinWidth="180"
+                                            Opacity="{x:Bind IsUnlocked, Converter={StaticResource BoolToOpacity}}">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Icon}"
+                                                       FontSize="36"
+                                                       HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{x:Bind Name}"
+                                                       FontSize="15" FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       TextAlignment="Center"
+                                                       Margin="0,8,0,0"/>
+                                            <TextBlock FontSize="12"
+                                                       HorizontalAlignment="Center"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                       Margin="0,4,0,0">
+                                                <Run Text="Criteria: "/>
+                                                <Run Text="{x:Bind CriteriaValue}" FontWeight="Bold"/>
+                                            </TextBlock>
+                                            <!-- Locked / Unlocked label -->
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       FontSize="11" Margin="0,6,0,0"
+                                                       Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                                                       Visibility="{x:Bind IsUnlocked, Converter={StaticResource BoolToVisibility}}"
+                                                       Text="✅ Unlocked" FontWeight="SemiBold"/>
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       FontSize="11" Margin="0,6,0,0"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                       Visibility="{x:Bind IsUnlocked, Converter={StaticResource BoolToVisibilityInverter}}"
+                                                       Text="🔒 Locked"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+
+                <!-- How to earn badges (same static reference as before) -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="How to earn badges" FontSize="16" FontWeight="SemiBold"/>
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="12" Padding="20">
+                        <StackPanel Spacing="14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="The Snob" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="Write 10 extra reviews"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Why so serious?" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="Fully complete 50 extra reviews"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="The Joker" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="70%+ of reviews are comedies"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="The Godfather I" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="Write 100 total reviews"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="The Godfather II" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="Write 200 total reviews"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="The Godfather III" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="Write 300 total reviews"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

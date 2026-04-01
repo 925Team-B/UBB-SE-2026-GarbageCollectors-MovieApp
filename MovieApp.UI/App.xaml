@@ -1,0 +1,22 @@
+<!-- Copyright (c) MovieApp. All rights reserved. -->
+<Application
+    x:Class="MovieApp.UI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MovieApp.UI">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Value Converters -->
+            <local:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+            <local:BoolToVisibilityInverterConverter x:Key="BoolToVisibilityInverter"/>
+            <local:IntToVisibilityConverter x:Key="IntToVisibility"/>
+            <local:NullableIntToVisibilityConverter x:Key="NullableIntToVisibility"/>
+            <local:StringNotEmptyToBoolConverter x:Key="StringNotEmptyToBool"/>
+            <local:BoolToOpacityConverter x:Key="BoolToOpacity"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
