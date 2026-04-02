@@ -1,10 +1,11 @@
 #nullable enable
 using Microsoft.Data.SqlClient;
+using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
 
 namespace MovieApp.Core.Repositories;
 
-public class MovieRepository
+public class MovieRepository : IMovieRepository
 {
     private readonly string _connectionString;
 
