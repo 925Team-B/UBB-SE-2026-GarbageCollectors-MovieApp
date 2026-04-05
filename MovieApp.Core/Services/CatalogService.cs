@@ -1,6 +1,7 @@
 #nullable enable
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Models;
+using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -9,13 +10,13 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class CatalogService : ICatalogService
 {
-    private readonly IMovieRepository _movieRepository;
+    private readonly MovieRepository _movieRepository;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CatalogService"/>.
     /// </summary>
     /// <param name="movieRepository">The movie repository.</param>
-    public CatalogService(IMovieRepository movieRepository)
+    public CatalogService(MovieRepository movieRepository)
     {
         _movieRepository = movieRepository;
     }
