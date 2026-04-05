@@ -1,7 +1,6 @@
 #nullable enable
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -10,10 +9,10 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class ReviewService : IReviewService
 {
-    private readonly ReviewRepository _reviewRepository;
-    private readonly MovieRepository _movieRepository;
-    private readonly UserRepository _userRepository;
-    private readonly BattleRepository _battleRepository;
+    private readonly IReviewRepository _reviewRepository;
+    private readonly IMovieRepository _movieRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IBattleRepository _battleRepository;
     private readonly IPointService _pointService;
 
     /// <summary>
@@ -25,10 +24,10 @@ public class ReviewService : IReviewService
     /// <param name="battleRepository">The battle repository.</param>
     /// <param name="pointService">The point service for awarding points.</param>
     public ReviewService(
-        ReviewRepository reviewRepository,
-        MovieRepository movieRepository,
-        UserRepository userRepository,
-        BattleRepository battleRepository,
+        IReviewRepository reviewRepository,
+        IMovieRepository movieRepository,
+        IUserRepository userRepository,
+        IBattleRepository battleRepository,
         IPointService pointService)
     {
         _reviewRepository = reviewRepository;
