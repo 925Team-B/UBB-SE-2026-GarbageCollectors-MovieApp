@@ -1,7 +1,6 @@
 #nullable enable
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -10,10 +9,10 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class BattleService : IBattleService
 {
-    private readonly BattleRepository _battleRepository;
-    private readonly BetRepository _betRepository;
-    private readonly MovieRepository _movieRepository;
-    private readonly UserRepository _userRepository;
+    private readonly IBattleRepository _battleRepository;
+    private readonly IBetRepository _betRepository;
+    private readonly IMovieRepository _movieRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IPointService _pointService;
 
     /// <summary>
@@ -25,10 +24,10 @@ public class BattleService : IBattleService
     /// <param name="userRepository">The user repository.</param>
     /// <param name="pointService">The point service for bet handling.</param>
     public BattleService(
-        BattleRepository battleRepository,
-        BetRepository betRepository,
-        MovieRepository movieRepository,
-        UserRepository userRepository,
+        IBattleRepository battleRepository,
+        IBetRepository betRepository,
+        IMovieRepository movieRepository,
+        IUserRepository userRepository,
         IPointService pointService)
     {
         _battleRepository = battleRepository;

@@ -1,7 +1,6 @@
 #nullable enable
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -10,9 +9,9 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class CommentService : ICommentService
 {
-    private readonly CommentRepository _commentRepository;
-    private readonly UserRepository _userRepository;
-    private readonly MovieRepository _movieRepository;
+    private readonly ICommentRepository _commentRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IMovieRepository _movieRepository;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CommentService"/>.
@@ -21,9 +20,9 @@ public class CommentService : ICommentService
     /// <param name="userRepository">The user repository.</param>
     /// <param name="movieRepository">The movie repository.</param>
     public CommentService(
-        CommentRepository commentRepository,
-        UserRepository userRepository,
-        MovieRepository movieRepository)
+        ICommentRepository commentRepository,
+        IUserRepository userRepository,
+        IMovieRepository movieRepository)
     {
         _commentRepository = commentRepository;
         _userRepository = userRepository;

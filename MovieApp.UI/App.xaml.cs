@@ -75,15 +75,15 @@ public partial class App : Application
         }
         else
         {
-            services.AddTransient<MovieRepository>(sp => new MovieRepository(connString));
-            services.AddTransient<UserRepository>(sp => new UserRepository(connString));
-            services.AddTransient<ReviewRepository>(sp => new ReviewRepository(connString));
-            services.AddTransient<CommentRepository>(sp => new CommentRepository(connString));
-            services.AddTransient<BattleRepository>(sp => new BattleRepository(connString));
-            services.AddTransient<BadgeRepository>(sp => new BadgeRepository(connString));
-            services.AddTransient<BetRepository>(sp => new BetRepository(connString));
-            services.AddTransient<UserStatsRepository>(sp => new UserStatsRepository(connString));
-            services.AddTransient<UserBadgeRepository>(sp => new UserBadgeRepository(connString));
+            services.AddTransient<IMovieRepository, MovieRepository>(sp => new MovieRepository(connString));
+            services.AddTransient<IUserRepository, UserRepository>(sp => new UserRepository(connString));
+            services.AddTransient<IReviewRepository, ReviewRepository>(sp => new ReviewRepository(connString));
+            services.AddTransient<ICommentRepository, CommentRepository>(sp => new CommentRepository(connString));
+            services.AddTransient<IBattleRepository, BattleRepository>(sp => new BattleRepository(connString));
+            services.AddTransient<IBadgeRepository, BadgeRepository>(sp => new BadgeRepository(connString));
+            services.AddTransient<IBetRepository, BetRepository>(sp => new BetRepository(connString));
+            services.AddTransient<IUserStatsRepository, UserStatsRepository>(sp => new UserStatsRepository(connString));
+            services.AddTransient<IUserBadgeRepository, UserBadgeRepository>(sp => new UserBadgeRepository(connString));
             services.AddTransient<DatabaseInitializer>(sp => new DatabaseInitializer(connString));
 
             // Core services
