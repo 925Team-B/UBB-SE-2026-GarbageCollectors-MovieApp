@@ -118,7 +118,6 @@ public class CommentRepository
 
     private static Comment MapComment(SqlDataReader reader)
     {
-
         var parentCommentIdOrdinal = reader.GetOrdinal("ParentCommentId");
 
         return new Comment
