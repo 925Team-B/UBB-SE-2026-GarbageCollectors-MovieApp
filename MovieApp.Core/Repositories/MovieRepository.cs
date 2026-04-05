@@ -13,7 +13,7 @@ public class MovieRepository
         _connectionString = connectionString;
     }
 
-    public List<Movie> GetAll()
+    public virtual List<Movie> GetAll()
     {
         var movies = new List<Movie>();
 
@@ -40,7 +40,7 @@ public class MovieRepository
         return movies;
     }
 
-    public Movie? GetById(int id)
+    public virtual Movie? GetById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -68,7 +68,7 @@ public class MovieRepository
         };
     }
 
-    public int Insert(Movie movie)
+    public virtual int Insert(Movie movie)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -88,7 +88,7 @@ public class MovieRepository
         return id;
     }
 
-    public bool Update(Movie movie)
+    public virtual bool Update(Movie movie)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -111,7 +111,7 @@ public class MovieRepository
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    public bool Delete(int id)
+    public virtual bool Delete(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("DELETE FROM Movie WHERE MovieId = @id", connection);

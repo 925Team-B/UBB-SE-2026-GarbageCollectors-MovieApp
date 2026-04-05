@@ -13,7 +13,7 @@ public class BattleRepository
         _connectionString = connectionString;
     }
 
-    public List<Battle> GetAll()
+    public virtual List<Battle> GetAll()
     {
         var battles = new List<Battle>();
 
@@ -33,7 +33,7 @@ public class BattleRepository
         return battles;
     }
 
-    public Battle? GetById(int id)
+    public virtual Battle? GetById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -54,7 +54,7 @@ public class BattleRepository
         return MapBattle(reader);
     }
 
-    public int Insert(Battle battle)
+    public virtual int Insert(Battle battle)
     {
         if (battle.FirstMovie is null)
             throw new InvalidOperationException("Battle.FirstMovie is required for insert.");
@@ -83,7 +83,7 @@ public class BattleRepository
         return id;
     }
 
-    public bool Update(Battle battle)
+    public virtual bool Update(Battle battle)
     {
         if (battle.FirstMovie is null)
             throw new InvalidOperationException("Battle.FirstMovie is required for update.");
@@ -115,7 +115,7 @@ public class BattleRepository
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    public bool Delete(int id)
+    public virtual bool Delete(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("DELETE FROM Battle WHERE BattleId = @id", connection);

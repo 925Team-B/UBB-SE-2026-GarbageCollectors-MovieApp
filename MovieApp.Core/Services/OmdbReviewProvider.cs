@@ -27,7 +27,18 @@ public sealed class OmdbReviewProvider : IExternalReviewProvider
         var cacheKey = BuildCacheKey("omdb", movieTitle, releaseYear);
 
         var json = await _cacheService.FetchOrCacheAsync(cacheKey, url, _httpClient);
-        var dto = JsonSerializer.Deserialize<OmdbResponseDto>(json);
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+
+        OmdbResponseDto? dto;
+        try
+        {
+            dto = JsonSerializer.Deserialize<OmdbResponseDto>(json);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
 
         var firstRating = dto?.Ratings?.FirstOrDefault();
         if (firstRating is null)

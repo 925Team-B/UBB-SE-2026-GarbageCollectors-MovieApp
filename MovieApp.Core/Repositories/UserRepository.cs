@@ -13,7 +13,7 @@ public class UserRepository
         _connectionString = connectionString;
     }
 
-    public List<User> GetAll()
+    public virtual List<User> GetAll()
     {
         var users = new List<User>();
 
@@ -33,7 +33,7 @@ public class UserRepository
         return users;
     }
 
-    public User? GetById(int id)
+    public virtual User? GetById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("SELECT UserId FROM [User] WHERE UserId = @id", connection);
@@ -53,7 +53,7 @@ public class UserRepository
         };
     }
 
-    public int Insert(User user)
+    public virtual int Insert(User user)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -66,7 +66,7 @@ public class UserRepository
         return id;
     }
 
-    public bool Update(User user)
+    public virtual bool Update(User user)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -80,7 +80,7 @@ public class UserRepository
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    public bool Delete(int id)
+    public virtual bool Delete(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("DELETE FROM [User] WHERE UserId = @id", connection);
