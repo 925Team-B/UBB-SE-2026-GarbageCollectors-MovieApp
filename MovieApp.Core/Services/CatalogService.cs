@@ -2,7 +2,6 @@
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -17,7 +16,7 @@ public class CatalogService : ICatalogService
     /// Initializes a new instance of <see cref="CatalogService"/>.
     /// </summary>
     /// <param name="movieRepository">The movie repository.</param>
-    public CatalogService(MovieRepository movieRepository)
+    public CatalogService(IMovieRepository movieRepository)
     {
         _movieRepository = movieRepository;
     }

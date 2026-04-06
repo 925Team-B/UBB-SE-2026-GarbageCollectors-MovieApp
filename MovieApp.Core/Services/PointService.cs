@@ -2,7 +2,6 @@
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -24,9 +23,9 @@ public class PointService : IPointService
     /// <param name="movieRepository">The movie repository.</param>
     /// <param name="badgeService">The badge service for checking awards.</param>
     public PointService(
-        UserStatsRepository userStatsRepository,
-        UserRepository userRepository,
-        MovieRepository movieRepository,
+        IUserStatsRepository userStatsRepository,
+        IUserRepository userRepository,
+        IMovieRepository movieRepository,
         IBadgeService badgeService)
     {
         _userStatsRepository = userStatsRepository;

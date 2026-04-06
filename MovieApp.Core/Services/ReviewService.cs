@@ -2,7 +2,6 @@
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -26,10 +25,10 @@ public class ReviewService : IReviewService
     /// <param name="battleRepository">The battle repository.</param>
     /// <param name="pointService">The point service for awarding points.</param>
     public ReviewService(
-        ReviewRepository reviewRepository,
-        MovieRepository movieRepository,
-        UserRepository userRepository,
-        BattleRepository battleRepository,
+        IReviewRepository reviewRepository,
+        IMovieRepository movieRepository,
+        IUserRepository userRepository,
+        IBattleRepository battleRepository,
         IPointService pointService)
     {
         _reviewRepository = reviewRepository;

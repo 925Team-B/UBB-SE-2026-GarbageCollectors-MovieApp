@@ -2,7 +2,6 @@
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -26,10 +25,10 @@ public class BattleService : IBattleService
     /// <param name="userRepository">The user repository.</param>
     /// <param name="pointService">The point service for bet handling.</param>
     public BattleService(
-        BattleRepository battleRepository,
-        BetRepository betRepository,
-        MovieRepository movieRepository,
-        UserRepository userRepository,
+        IBattleRepository battleRepository,
+        IBetRepository betRepository,
+        IMovieRepository movieRepository,
+        IUserRepository userRepository,
         IPointService pointService)
     {
         _battleRepository = battleRepository;

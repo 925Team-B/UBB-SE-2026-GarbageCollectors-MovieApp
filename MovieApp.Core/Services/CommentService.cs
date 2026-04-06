@@ -2,7 +2,6 @@
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
-using MovieApp.Core.Repositories;
 
 namespace MovieApp.Core.Services;
 
@@ -22,9 +21,9 @@ public class CommentService : ICommentService
     /// <param name="userRepository">The user repository.</param>
     /// <param name="movieRepository">The movie repository.</param>
     public CommentService(
-        CommentRepository commentRepository,
-        UserRepository userRepository,
-        MovieRepository movieRepository)
+        ICommentRepository commentRepository,
+        IUserRepository userRepository,
+        IMovieRepository movieRepository)
     {
         _commentRepository = commentRepository;
         _userRepository = userRepository;
