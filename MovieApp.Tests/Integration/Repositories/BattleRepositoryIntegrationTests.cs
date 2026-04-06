@@ -18,7 +18,7 @@ namespace MovieApp.Tests.Integration.Repositories
             _databaseName = "MovieAppTestDb_Battle_" + Guid.NewGuid().ToString("N");
 
             _connectionString =
-                $"Server=LAPTOP-E1FUUK3D\\WIZPRO;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
             var initializer = new DatabaseInitializer(_connectionString);
             initializer.EnsureCreatedAndSeeded();
@@ -60,7 +60,7 @@ namespace MovieApp.Tests.Integration.Repositories
         public void Dispose()
         {
             var masterConnectionString =
-                "Server=LAPTOP-E1FUUK3D\\WIZPRO;Database=master;Trusted_Connection=True;TrustServerCertificate=True;";
+                "Server=.\\SQLEXPRESS;Database=master;Trusted_Connection=True;TrustServerCertificate=True;";
 
             using var conn = new SqlConnection(masterConnectionString);
             conn.Open();

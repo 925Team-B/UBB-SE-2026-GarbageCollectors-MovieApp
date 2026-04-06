@@ -7,7 +7,7 @@ namespace MovieApp.Tests.Integration.Repositories
     public class DatabaseInitializerIntegrationTests
     {
         private const string ConnectionString =
-        "Server=LAPTOP-E1FUUK3D\\WIZPRO;Database=MovieAppTestDb;Trusted_Connection=True;TrustServerCertificate=True;";
+        "Server=.\\SQLEXPRESS;Database=MovieAppTestDb;Trusted_Connection=True;TrustServerCertificate=True;";
         
         [Fact]
         public void EnsureCreatedAndSeeded_Called_CreatesTables()
