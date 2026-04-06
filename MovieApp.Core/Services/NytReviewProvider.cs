@@ -52,7 +52,15 @@ public sealed class NytReviewProvider : IExternalReviewProvider
             if (string.IsNullOrWhiteSpace(json))
                 continue;
 
-            dto = JsonSerializer.Deserialize<NytApiResponseDto>(json);
+            try
+            {
+                dto = JsonSerializer.Deserialize<NytApiResponseDto>(json);
+            }
+            catch (JsonException)
+            {
+                continue;
+            }
+
             if (dto?.Response?.Docs?.Any() == true)
                 break;
         }
@@ -65,9 +73,6 @@ public sealed class NytReviewProvider : IExternalReviewProvider
             .OrderByDescending(d => MatchScore(movieTitle, releaseYear, d.Headline?.Main, d.Snippet))
             .FirstOrDefault();
         if (doc is null)
-            return null;
-
-        if (MatchScore(movieTitle, releaseYear, doc.Headline?.Main, doc.Snippet) <= 0)
             return null;
 
         return new CriticReview
@@ -89,7 +94,16 @@ public sealed class NytReviewProvider : IExternalReviewProvider
         if (string.IsNullOrWhiteSpace(json))
             return (movieTitle, releaseYear, string.Empty);
 
-        var dto = JsonSerializer.Deserialize<OmdbContextDto>(json);
+        OmdbContextDto? dto;
+        try
+        {
+            dto = JsonSerializer.Deserialize<OmdbContextDto>(json);
+        }
+        catch (JsonException)
+        {
+            return (movieTitle, releaseYear, string.Empty);
+        }
+
         if (dto is null)
             return (movieTitle, releaseYear, string.Empty);
 
@@ -110,13 +124,10 @@ public sealed class NytReviewProvider : IExternalReviewProvider
     private static int MatchScore(string movieTitle, int releaseYear, string? headline, string? snippet)
     {
         var text = $"{headline} {snippet}";
-        if (string.IsNullOrWhiteSpace(text))
-            return 0;
 
         var score = 0;
         if (text.Contains(movieTitle, StringComparison.OrdinalIgnoreCase))
             score += 10;
-
         var tokens = movieTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(t => t.Length > 2)
             .ToList();

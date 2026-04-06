@@ -14,7 +14,7 @@ public class UserStatsRepository : IUserStatsRepository
         _connectionString = connectionString;
     }
 
-    public List<UserStats> GetAll()
+    public virtual List<UserStats> GetAll()
     {
         var stats = new List<UserStats>();
 
@@ -33,7 +33,7 @@ public class UserStatsRepository : IUserStatsRepository
         return stats;
     }
 
-    public UserStats? GetById(int id)
+    public virtual UserStats? GetById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -53,7 +53,7 @@ public class UserStatsRepository : IUserStatsRepository
         return MapUserStats(reader);
     }
 
-    public UserStats? GetByUserId(int userId)
+    public virtual UserStats? GetByUserId(int userId)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -73,7 +73,7 @@ public class UserStatsRepository : IUserStatsRepository
         return MapUserStats(reader);
     }
 
-    public int Insert(UserStats stats)
+    public virtual int Insert(UserStats stats)
     {
         if (stats.User is null)
             throw new InvalidOperationException("UserStats.User is required for insert.");
@@ -94,7 +94,7 @@ public class UserStatsRepository : IUserStatsRepository
         return id;
     }
 
-    public bool Update(UserStats stats)
+    public virtual bool Update(UserStats stats)
     {
         if (stats.User is null)
             throw new InvalidOperationException("UserStats.User is required for update.");
@@ -116,7 +116,7 @@ public class UserStatsRepository : IUserStatsRepository
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    public bool Delete(int id)
+    public virtual bool Delete(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("DELETE FROM UserStats WHERE StatsId = @id", connection);

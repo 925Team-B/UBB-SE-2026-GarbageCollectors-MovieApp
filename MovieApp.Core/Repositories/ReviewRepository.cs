@@ -14,7 +14,7 @@ public class ReviewRepository : IReviewRepository
         _connectionString = connectionString;
     }
 
-    public List<Review> GetAll()
+    public virtual List<Review> GetAll()
     {
         var reviews = new List<Review>();
 
@@ -35,7 +35,7 @@ public class ReviewRepository : IReviewRepository
         return reviews;
     }
 
-    public Review? GetById(int id)
+    public virtual Review? GetById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand(@"
@@ -57,7 +57,7 @@ public class ReviewRepository : IReviewRepository
         return MapReview(reader);
     }
 
-    public int Insert(Review review)
+    public virtual int Insert(Review review)
     {
         if (review.User is null)
             throw new InvalidOperationException("Review.User is required for insert.");
@@ -97,7 +97,7 @@ public class ReviewRepository : IReviewRepository
         return id;
     }
 
-    public bool Update(Review review)
+    public virtual bool Update(Review review)
     {
         if (review.User is null)
             throw new InvalidOperationException("Review.User is required for update.");
@@ -147,7 +147,7 @@ public class ReviewRepository : IReviewRepository
         return cmd.ExecuteNonQuery() > 0;
     }
 
-    public bool Delete(int id)
+    public virtual bool Delete(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("DELETE FROM Review WHERE ReviewId = @id", connection);
