@@ -1,5 +1,6 @@
 #nullable enable
 using MovieApp.Core.Interfaces;
+using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
 
@@ -10,10 +11,10 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class BadgeService : IBadgeService
 {
-    private readonly UserBadgeRepository _userBadgeRepository;
-    private readonly BadgeRepository _badgeRepository;
-    private readonly ReviewRepository _reviewRepository;
-    private readonly MovieRepository _movieRepository;
+    private readonly IUserBadgeRepository _userBadgeRepository;
+    private readonly IBadgeRepository _badgeRepository;
+    private readonly IReviewRepository _reviewRepository;
+    private readonly IMovieRepository _movieRepository;
 
     /// <summary>
     /// Initializes a new instance of <see cref="BadgeService"/>.

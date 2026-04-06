@@ -1,5 +1,6 @@
 #nullable enable
 using MovieApp.Core.Interfaces;
+using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
 
@@ -10,9 +11,9 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class PointService : IPointService
 {
-    private readonly UserStatsRepository _userStatsRepository;
-    private readonly UserRepository _userRepository;
-    private readonly MovieRepository _movieRepository;
+    private readonly IUserStatsRepository _userStatsRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IMovieRepository _movieRepository;
     private readonly IBadgeService _badgeService;
 
     /// <summary>
