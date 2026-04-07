@@ -9,29 +9,31 @@ namespace MovieApp.UI.ViewModels;
 public sealed class BadgeDisplayItem
 {
     public Badge Badge { get; }
+
     public bool IsUnlocked { get; }
 
-    public string Name => Badge.Name;
-    public int CriteriaValue => Badge.CriteriaValue;
+    public string Name => this.Badge.Name;
+
+    public int CriteriaValue => this.Badge.CriteriaValue;
 
     /// <summary>Medal emoji when unlocked, padlock when locked.</summary>
     public string Icon => IsUnlocked ? "🏅" : "🔒";
 
     /// <summary>Human-readable criteria description for each known badge.</summary>
-    public string CriteriaDescription => Badge.Name switch
+    public string CriteriaDescription => this.Badge.Name switch
     {
-        "The Snob"        => $"Write {Badge.CriteriaValue} extra reviews",
-        "Why so serious?" => $"Fully complete {Badge.CriteriaValue} extra reviews",
-        "The Joker"        => $"70%+ of your reviews on Comedy movies",
-        "The Godfather I"  => $"Write {Badge.CriteriaValue} total reviews",
-        "The Godfather II" => $"Write {Badge.CriteriaValue} total reviews",
-        "The Godfather III" => $"Write {Badge.CriteriaValue} total reviews",
-        _ => $"Criteria value: {Badge.CriteriaValue}"
+        "The Snob" => $"Write {this.Badge.CriteriaValue} extra reviews",
+        "Why so serious?" => $"Fully complete {this.Badge.CriteriaValue} extra reviews",
+        "The Joker" => $"70%+ of your reviews on Comedy movies",
+        "The Godfather I" => $"Write {this.Badge.CriteriaValue} total reviews",
+        "The Godfather II" => $"Write {this.Badge.CriteriaValue} total reviews",
+        "The Godfather III" => $"Write {this.Badge.CriteriaValue} total reviews",
+        _ => $"Criteria value: {this.Badge.CriteriaValue}"
     };
 
     public BadgeDisplayItem(Badge badge, bool isUnlocked)
     {
-        Badge = badge;
-        IsUnlocked = isUnlocked;
+        this.Badge = badge;
+        this.IsUnlocked = isUnlocked;
     }
 }

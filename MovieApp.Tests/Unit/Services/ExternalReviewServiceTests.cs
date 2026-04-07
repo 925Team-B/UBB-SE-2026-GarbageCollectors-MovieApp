@@ -9,7 +9,6 @@ namespace MovieApp.Tests.Unit.Services;
 public class ExternalReviewServiceTests
 {
     // --- GetExternalReviews ---
-
     [Fact]
     public async Task GetExternalReviews_WhenProviderReturnsReview_ReturnsListContainingReview()
     {
@@ -70,7 +69,6 @@ public class ExternalReviewServiceTests
     }
 
     // --- GetAggregateScores ---
-
     [Fact]
     public async Task GetAggregateScores_WhenCalledWithTitle_ReturnsBothScoresInValidRange()
     {
@@ -95,14 +93,13 @@ public class ExternalReviewServiceTests
     }
 
     // --- AnalyseLexicon ---
-
     [Fact]
     public void AnalyseLexicon_WhenReviewsContainWords_ReturnsTopWordsByFrequency()
     {
         var reviews = new List<CriticReview>
         {
-            new() { Headline = "amazing film masterpiece", Snippet = "film amazing amazing" },
-            new() { Headline = "brilliant film", Snippet = "stunning visuals" }
+            new () { Headline = "amazing film masterpiece", Snippet = "film amazing amazing" },
+            new () { Headline = "brilliant film", Snippet = "stunning visuals" }
         };
         var sut = new ExternalReviewService(Enumerable.Empty<IExternalReviewProvider>());
 
@@ -120,7 +117,7 @@ public class ExternalReviewServiceTests
     {
         var reviews = new List<CriticReview>
         {
-            new() { Headline = "the a an and", Snippet = "it is this that" }
+            new () { Headline = "the a an and", Snippet = "it is this that" }
         };
         var sut = new ExternalReviewService(Enumerable.Empty<IExternalReviewProvider>());
 
@@ -145,7 +142,7 @@ public class ExternalReviewServiceTests
         var words = string.Join(" ", Enumerable.Range(1, 20).Select(i => $"word{i}"));
         var reviews = new List<CriticReview>
         {
-            new() { Headline = words, Snippet = string.Empty }
+            new () { Headline = words, Snippet = string.Empty }
         };
         var sut = new ExternalReviewService(Enumerable.Empty<IExternalReviewProvider>());
 
@@ -155,7 +152,6 @@ public class ExternalReviewServiceTests
     }
 
     // --- IsPolarized ---
-
     [Fact]
     public void IsPolarized_WhenScoresDifferByMoreThanThreshold_ReturnsTrue()
     {

@@ -1,34 +1,34 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class UserRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly UserRepository _repo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly UserRepository repo;
 
         public UserRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_User_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_User_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new UserRepository(_connectionString);
+            repo = new UserRepository(connectionString);
             ClearTables();
         }
 
         private void ClearTables()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM UserBadge", conn).ExecuteNonQuery();
@@ -48,10 +48,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -62,11 +62,11 @@ END", conn);
         {
             var user = new User();
 
-            int id = _repo.Insert(user);
+            int id = repo.Insert(user);
 
             Assert.True(id > 0);
 
-            var insertedUser = _repo.GetById(id);
+            var insertedUser = repo.GetById(id);
             Assert.NotNull(insertedUser);
             Assert.Equal(id, insertedUser!.UserId);
         }
@@ -74,10 +74,10 @@ END", conn);
         [Fact]
         public void GetAll_WhenUsersExist_ReturnsUsers()
         {
-            _repo.Insert(new User());
-            _repo.Insert(new User());
+            repo.Insert(new User());
+            repo.Insert(new User());
 
-            var users = _repo.GetAll();
+            var users = repo.GetAll();
 
             Assert.Equal(2, users.Count);
         }
@@ -87,9 +87,9 @@ END", conn);
         {
             var user = new User();
 
-            int id = _repo.Insert(user);
+            int id = repo.Insert(user);
 
-            var result = _repo.GetById(id);
+            var result = repo.GetById(id);
 
             Assert.NotNull(result);
             Assert.Equal(id, result!.UserId);
@@ -98,7 +98,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingUser_ReturnsNull()
         {
-            var result = _repo.GetById(999999);
+            var result = repo.GetById(999999);
 
             Assert.Null(result);
         }
@@ -108,10 +108,10 @@ END", conn);
         {
             var user = new User();
 
-            int id = _repo.Insert(user);
+            int id = repo.Insert(user);
             user.UserId = id;
 
-            Assert.Throws<SqlException>(() => _repo.Update(user));
+            Assert.Throws<SqlException>(() => repo.Update(user));
         }
 
         [Fact]
@@ -122,7 +122,7 @@ END", conn);
                 UserId = 999999
             };
 
-            Assert.Throws<SqlException>(() => _repo.Update(user));
+            Assert.Throws<SqlException>(() => repo.Update(user));
         }
 
         [Fact]
@@ -130,18 +130,18 @@ END", conn);
         {
             var user = new User();
 
-            int id = _repo.Insert(user);
+            int id = repo.Insert(user);
 
-            bool deleted = _repo.Delete(id);
+            bool deleted = repo.Delete(id);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(id));
+            Assert.Null(repo.GetById(id));
         }
 
         [Fact]
         public void Delete_NonExistingUser_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999999);
+            bool deleted = repo.Delete(999999);
 
             Assert.False(deleted);
         }

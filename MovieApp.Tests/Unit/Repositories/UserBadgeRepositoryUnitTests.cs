@@ -7,11 +7,11 @@ namespace MovieApp.Tests.Unit.Repositories
 {
     public class UserBadgeRepositoryUnitTests
     {
-        private readonly UserBadgeRepository _repo;
+        private readonly UserBadgeRepository repo;
 
         public UserBadgeRepositoryUnitTests()
         {
-            _repo = new UserBadgeRepository("fake-connection-string");
+            repo = new UserBadgeRepository("fake-connection-string");
         }
 
         [Fact]
@@ -23,7 +23,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Badge = new Badge { BadgeId = 1 }
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(userBadge));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(userBadge));
             Assert.Equal("UserBadge.User is required for insert.", ex.Message);
         }
 
@@ -36,7 +36,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Badge = null
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(userBadge));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(userBadge));
             Assert.Equal("UserBadge.Badge is required for insert.", ex.Message);
         }
 
@@ -49,7 +49,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Badge = new Badge { BadgeId = 1 }
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(userBadge));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(userBadge));
             Assert.Equal("UserBadge.User is required for update.", ex.Message);
         }
 
@@ -62,7 +62,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Badge = null
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(userBadge));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(userBadge));
             Assert.Equal("UserBadge.Badge is required for update.", ex.Message);
         }
     }

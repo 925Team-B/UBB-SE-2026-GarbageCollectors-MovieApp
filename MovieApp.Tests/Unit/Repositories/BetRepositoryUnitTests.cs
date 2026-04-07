@@ -7,11 +7,11 @@ namespace MovieApp.Tests.Unit.Repositories
 {
     public class BetRepositoryUnitTests
     {
-        private readonly BetRepository _repo;
+        private readonly BetRepository repo;
 
         public BetRepositoryUnitTests()
         {
-            _repo = new BetRepository("fake-connection-string");
+            repo = new BetRepository("fake-connection-string");
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Amount = 50
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(bet));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(bet));
             Assert.Equal("Bet.User is required for insert.", ex.Message);
         }
 
@@ -40,7 +40,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Amount = 50
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(bet));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(bet));
             Assert.Equal("Bet.Battle is required for insert.", ex.Message);
         }
 
@@ -55,7 +55,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Amount = 50
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(bet));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(bet));
             Assert.Equal("Bet.Movie is required for insert.", ex.Message);
         }
 
@@ -70,7 +70,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Amount = 75
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(bet));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(bet));
             Assert.Equal("Bet.User is required for update.", ex.Message);
         }
 
@@ -85,7 +85,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Amount = 75
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(bet));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(bet));
             Assert.Equal("Bet.Battle is required for update.", ex.Message);
         }
 
@@ -100,7 +100,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Amount = 75
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(bet));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(bet));
             Assert.Equal("Bet.Movie is required for update.", ex.Message);
         }
     }

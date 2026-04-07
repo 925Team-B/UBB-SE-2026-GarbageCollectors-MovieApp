@@ -1,8 +1,8 @@
-﻿using Moq;
-using Xunit;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Moq;
+using Xunit;
 using MovieApp.UI.ViewModels;
 using MovieApp.Core.Models;
 using MovieApp.Core.Interfaces;
@@ -11,26 +11,23 @@ namespace MovieApp.Tests.Unit.ViewModels
 {
     public class CatalogViewModelTests
     {
-        private readonly Mock<ICatalogService> _mockCatalogService;
+        private readonly Mock<ICatalogService> mockCatalogService;
 
         public CatalogViewModelTests()
         {
-            _mockCatalogService = new Mock<ICatalogService>();
+            mockCatalogService = new Mock<ICatalogService>();
 
-            _mockCatalogService
+            mockCatalogService
                 .Setup(s => s.GetAllMovies())
                 .ReturnsAsync(new List<Movie>());
 
-            _mockCatalogService
+            mockCatalogService
                 .Setup(s => s.SearchMovies(It.IsAny<string>()))
                 .ReturnsAsync(new List<Movie>());
         }
 
         private CatalogViewModel CreateViewModel() =>
-            new(_mockCatalogService.Object);
-
-
-
+            new (mockCatalogService.Object);
         [Fact]
         public async Task LoadMoviesAsync_WhenCalled_CallsGetAllMovies()
         {
@@ -38,7 +35,7 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             await vm.LoadMoviesAsync();
 
-            _mockCatalogService.Verify(s => s.GetAllMovies(), Times.AtLeastOnce);
+            mockCatalogService.Verify(s => s.GetAllMovies(), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -46,10 +43,10 @@ namespace MovieApp.Tests.Unit.ViewModels
         {
             List<Movie> movies = new List<Movie>
             {
-                new() { MovieId = 1, Title = "Inception" },
-                new() { MovieId = 2, Title = "Interstellar" }
+                new () { MovieId = 1, Title = "Inception" },
+                new () { MovieId = 2, Title = "Interstellar" }
             };
-            _mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(movies);
+            mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(movies);
 
             CatalogViewModel vm = CreateViewModel();
             await vm.LoadMoviesAsync();
@@ -60,8 +57,8 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task LoadMoviesAsync_WhenCalledTwice_ReplacesMoviesNotAppends()
         {
-            _mockCatalogService.Setup(s => s.GetAllMovies())
-                .ReturnsAsync(new List<Movie> { new() { MovieId = 1, Title = "Movie A" } });
+            mockCatalogService.Setup(s => s.GetAllMovies())
+                .ReturnsAsync(new List<Movie> { new () { MovieId = 1, Title = "Movie A" } });
 
             CatalogViewModel vm = CreateViewModel();
             await vm.LoadMoviesAsync();
@@ -78,11 +75,8 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.LoadMoviesCommand.Execute(null);
             await Task.Delay(100);
 
-            _mockCatalogService.Verify(s => s.GetAllMovies(), Times.AtLeastOnce);
+            mockCatalogService.Verify(s => s.GetAllMovies(), Times.AtLeastOnce);
         }
-
-
-
         [Fact]
         public async Task SearchQuery_WhenSetToNonEmpty_CallsSearchMovies()
         {
@@ -91,7 +85,7 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.SearchQuery = "Inception";
             await Task.Delay(100);
 
-            _mockCatalogService.Verify(s => s.SearchMovies("Inception"), Times.AtLeastOnce);
+            mockCatalogService.Verify(s => s.SearchMovies("Inception"), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -104,15 +98,15 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.SearchQuery = string.Empty;
             await Task.Delay(100);
 
-            _mockCatalogService.Verify(s => s.GetAllMovies(), Times.AtLeastOnce);
+            mockCatalogService.Verify(s => s.GetAllMovies(), Times.AtLeastOnce);
         }
 
         [Fact]
         public async Task SearchQuery_WhenResultsReturned_PopulatesMoviesCollection()
         {
-            _mockCatalogService
+            mockCatalogService
                 .Setup(s => s.SearchMovies("Inception"))
-                .ReturnsAsync(new List<Movie> { new() { MovieId = 1, Title = "Inception" } });
+                .ReturnsAsync(new List<Movie> { new () { MovieId = 1, Title = "Inception" } });
 
             CatalogViewModel vm = CreateViewModel();
             vm.SearchQuery = "Inception";
@@ -121,16 +115,13 @@ namespace MovieApp.Tests.Unit.ViewModels
             Assert.Single(vm.Movies);
             Assert.Equal("Inception", vm.Movies[0].Title);
         }
-
-
-
         [Fact]
         public async Task SelectedGenre_WhenSetToSpecificGenre_FiltersMoviesByGenre()
         {
-            _mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(new List<Movie>
+            mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(new List<Movie>
             {
-                new() { MovieId = 1, Title = "Inception",     Genre = "Sci-Fi" },
-                new() { MovieId = 2, Title = "The Godfather", Genre = "Crime"  }
+                new () { MovieId = 1, Title = "Inception",     Genre = "Sci-Fi" },
+                new () { MovieId = 2, Title = "The Godfather", Genre = "Crime" }
             });
 
             CatalogViewModel vm = CreateViewModel();
@@ -146,32 +137,27 @@ namespace MovieApp.Tests.Unit.ViewModels
         {
             List<Movie> allMovies = new List<Movie>
             {
-                new() { MovieId = 1, Genre = "Sci-Fi", Title = "Movie 1" },
-                new() { MovieId = 2, Genre = "Crime",  Title = "Movie 2" }
+                new () { MovieId = 1, Genre = "Sci-Fi", Title = "Movie 1" },
+                new () { MovieId = 2, Genre = "Crime",  Title = "Movie 2" }
             };
-            _mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(allMovies);
+            mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(allMovies);
 
             CatalogViewModel vm = CreateViewModel();
 
             vm.SelectedGenre = "Sci-Fi";
             await Task.Delay(200);
-
-
             vm.SelectedGenre = "All Genres";
             await Task.Delay(300);
 
             Assert.Equal(2, vm.Movies.Count);
         }
-
-
-
         [Fact]
         public async Task MinimumRating_WhenSet_FiltersMoviesBelowThreshold()
         {
-            _mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(new List<Movie>
+            mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(new List<Movie>
             {
-                new() { MovieId = 1, Title = "High Rated", AverageRating = 8.5 },
-                new() { MovieId = 2, Title = "Low Rated",  AverageRating = 4.0 }
+                new () { MovieId = 1, Title = "High Rated", AverageRating = 8.5 },
+                new () { MovieId = 2, Title = "Low Rated",  AverageRating = 4.0 }
             });
 
             CatalogViewModel vm = CreateViewModel();
@@ -188,28 +174,23 @@ namespace MovieApp.Tests.Unit.ViewModels
             // Arrange
             List<Movie> allMovies = new List<Movie>
             {
-                new() { MovieId = 1, Title = "Movie 1", AverageRating = 8.5, Genre = "Sci-Fi" },
-                new() { MovieId = 2, Title = "Movie 2", AverageRating = 2.0, Genre = "Drama" }
+                new () { MovieId = 1, Title = "Movie 1", AverageRating = 8.5, Genre = "Sci-Fi" },
+                new () { MovieId = 2, Title = "Movie 2", AverageRating = 2.0, Genre = "Drama" }
             };
-            _mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(allMovies);
+            mockCatalogService.Setup(s => s.GetAllMovies()).ReturnsAsync(allMovies);
 
             CatalogViewModel vm = CreateViewModel();
             vm.SelectedGenre = "All Genres";
             await vm.LoadMoviesAsync();
-
-
             vm.MinimumRating = 9.0;
             await Task.Delay(200);
-            Assert.Empty(vm.Movies); 
+            Assert.Empty(vm.Movies);
 
             vm.MinimumRating = 0;
             await Task.Delay(300);
 
             Assert.Equal(2, vm.Movies.Count);
         }
-
-
-
         [Fact]
         public void SelectMovieCommand_WhenMoviePassed_SetsSelectedMovie()
         {
@@ -245,8 +226,6 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             Assert.False(raised);
         }
-
-
         [Fact]
         public async Task ClearFiltersCommand_WhenFiltersActive_ResetsSearchQueryToEmpty()
         {
@@ -285,15 +264,18 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             Assert.Equal(0, vm.MinimumRating);
         }
-
-
-
         [Fact]
         public void SearchQuery_WhenSet_RaisesPropertyChangedEvent()
         {
             CatalogViewModel vm = CreateViewModel();
             bool changed = false;
-            vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(vm.SearchQuery)) changed = true; };
+            vm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(vm.SearchQuery))
+                {
+                    changed = true;
+                }
+            };
 
             vm.SearchQuery = "new query";
 
@@ -305,7 +287,13 @@ namespace MovieApp.Tests.Unit.ViewModels
         {
             CatalogViewModel vm = CreateViewModel();
             bool changed = false;
-            vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(vm.SelectedGenre)) changed = true; };
+            vm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(vm.SelectedGenre))
+                {
+                    changed = true;
+                }
+            };
 
             vm.SelectedGenre = "Action";
 

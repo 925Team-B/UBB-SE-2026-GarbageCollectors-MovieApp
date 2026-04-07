@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Repositories;
+using MovieApp.Core.Interfaces.Repository;
 using MovieApp.Core.Services;
 using MovieApp.UI.ViewModels;
 
@@ -14,11 +15,13 @@ namespace MovieApp.UI;
 /// </summary>
 public partial class App : Application
 {
-    private Window? _window;
-    private readonly string _connString = "Server=.\\SQLEXPRESS;Database=MovieAppDb;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=10;";
+    private readonly string connString = "Server=.\\SQLEXPRESS;Database=MovieAppDb;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=10;";
+
+    private readonly string mockDataPath;
+    private readonly bool useMockData;
+    private Window? window;
+
     public static bool UsingMockData { get; private set; }
-    private readonly string _mockDataPath;
-    private readonly bool _useMockData;
 
     /// <summary>Gets the service provider for dependency injection.</summary>
     public static IServiceProvider Services { get; private set; } = null!;
@@ -29,13 +32,13 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
-        _mockDataPath = Path.Combine(AppContext.BaseDirectory, "Data", "mock-data.json");
-        _useMockData = !CanConnectToDatabase(_connString);
-        UsingMockData = _useMockData;
+        mockDataPath = Path.Combine(AppContext.BaseDirectory, "Data", "mock-data.json");
+        useMockData = !CanConnectToDatabase(connString);
+        UsingMockData = useMockData;
 
         // Configure services
         var serviceCollection = new ServiceCollection();
-        ConfigureServices(serviceCollection, _connString, _useMockData, _mockDataPath);
+        ConfigureServices(serviceCollection, connString, useMockData, mockDataPath);
         Services = serviceCollection.BuildServiceProvider();
     }
 
@@ -45,15 +48,15 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        if (!_useMockData)
+        if (!useMockData)
         {
             using var scope = Services.CreateScope();
             var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
             initializer.EnsureCreatedAndSeeded();
         }
 
-        _window = new MainWindow();
-        _window.Activate();
+        window = new MainWindow();
+        window.Activate();
         await Task.CompletedTask;
     }
 

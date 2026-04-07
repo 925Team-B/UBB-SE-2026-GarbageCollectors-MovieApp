@@ -1,46 +1,43 @@
-﻿using Moq;
-using Xunit;
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using MovieApp.UI.ViewModels;
-using MovieApp.Core.Models;
+using Moq;
 using MovieApp.Core.Interfaces;
+using MovieApp.Core.Models;
+using MovieApp.UI.ViewModels;
+using Xunit;
 
 namespace MovieApp.Tests.Unit.ViewModels
 {
     public class BattleViewModelTests
     {
-        private readonly Mock<IBattleService> _mockBattleService;
-        private readonly Mock<IPointService> _mockPointService;
+        private readonly Mock<IBattleService> mockBattleService;
+        private readonly Mock<IPointService> mockPointService;
         private const int CurrentUserId = 1;
 
         public BattleViewModelTests()
         {
-            _mockBattleService = new Mock<IBattleService>();
-            _mockPointService = new Mock<IPointService>();
+            mockBattleService = new Mock<IBattleService>();
+            mockPointService = new Mock<IPointService>();
 
-            _mockBattleService
+            mockBattleService
                 .Setup(s => s.SettleExpiredBattlesAsync())
                 .Returns(Task.CompletedTask);
 
-            _mockBattleService
+            mockBattleService
                 .Setup(s => s.GetCurrentBattleForUser(It.IsAny<int>()))
                 .Returns(Task.FromResult<Battle?>(null));
 
-            _mockBattleService
+            mockBattleService
                 .Setup(s => s.GetBet(It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(Task.FromResult<Bet?>(null));
 
-            _mockPointService
+            mockPointService
                 .Setup(s => s.GetUserStats(It.IsAny<int>()))
                 .ReturnsAsync(new UserStats { TotalPoints = 0, WeeklyScore = 0 });
         }
 
         private BattleViewModel CreateViewModel() =>
-            new(_mockBattleService.Object, _mockPointService.Object, CurrentUserId);
-
-
-
+            new (mockBattleService.Object, mockPointService.Object, CurrentUserId);
         [Fact]
         public async Task LoadBattleAsync_WhenCalled_SettlesExpiredBattlesFirst()
         {
@@ -48,7 +45,7 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             await vm.LoadBattleAsync(settleExpired: true);
 
-            _mockBattleService.Verify(s => s.SettleExpiredBattlesAsync(), Times.Once);
+            mockBattleService.Verify(s => s.SettleExpiredBattlesAsync(), Times.Once);
         }
 
         [Fact]
@@ -58,13 +55,13 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             await vm.LoadBattleAsync(settleExpired: false);
 
-            _mockBattleService.Verify(s => s.SettleExpiredBattlesAsync(), Times.Never);
+            mockBattleService.Verify(s => s.SettleExpiredBattlesAsync(), Times.Never);
         }
 
         [Fact]
         public async Task LoadBattleAsync_WhenCalled_LoadsUserPoints()
         {
-            _mockPointService
+            mockPointService
                 .Setup(s => s.GetUserStats(CurrentUserId))
                 .ReturnsAsync(new UserStats { TotalPoints = 250, WeeklyScore = 10 });
 
@@ -77,7 +74,7 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task LoadBattleAsync_WhenNoBattleExists_SetsHasBattleFalse()
         {
-            _mockBattleService
+            mockBattleService
                 .Setup(s => s.GetCurrentBattleForUser(CurrentUserId))
                 .Returns(Task.FromResult<Battle?>(null));
 
@@ -97,10 +94,10 @@ namespace MovieApp.Tests.Unit.ViewModels
                 FirstMovie = new Movie { MovieId = 10, Title = "Inception" },
                 SecondMovie = new Movie { MovieId = 11, Title = "Interstellar" }
             };
-            _mockBattleService
+            mockBattleService
                 .Setup(s => s.GetCurrentBattleForUser(CurrentUserId))
                 .ReturnsAsync(battle);
-            _mockBattleService
+            mockBattleService
                 .Setup(s => s.GetBet(CurrentUserId, battle.BattleId))
                 .Returns(Task.FromResult<Bet?>(null));
 
@@ -118,8 +115,8 @@ namespace MovieApp.Tests.Unit.ViewModels
             Movie movie2 = new Movie { MovieId = 11, Title = "Interstellar" };
             Battle battle = new Battle { BattleId = 1, Status = "Active", FirstMovie = movie1, SecondMovie = movie2 };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
@@ -139,8 +136,8 @@ namespace MovieApp.Tests.Unit.ViewModels
             };
             Bet existingBet = new Bet { Amount = 50 };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync(existingBet);
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync(existingBet);
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
@@ -156,9 +153,9 @@ namespace MovieApp.Tests.Unit.ViewModels
             Movie movie2 = new Movie { MovieId = 11, Title = "Interstellar" };
             Battle battle = new Battle { BattleId = 1, Status = "Finished", FirstMovie = movie1, SecondMovie = movie2 };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
-            _mockBattleService.Setup(s => s.DetermineWinner(battle.BattleId)).ReturnsAsync(10);
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.DetermineWinner(battle.BattleId)).ReturnsAsync(10);
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
@@ -177,9 +174,9 @@ namespace MovieApp.Tests.Unit.ViewModels
                 SecondMovie = new Movie { MovieId = 11 }
             };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
-            _mockBattleService.Setup(s => s.DetermineWinner(battle.BattleId)).ThrowsAsync(new Exception("error"));
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.DetermineWinner(battle.BattleId)).ThrowsAsync(new Exception("error"));
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
@@ -199,9 +196,6 @@ namespace MovieApp.Tests.Unit.ViewModels
             Assert.Equal(string.Empty, vm.StatusMessage);
             Assert.False(vm.ShowBetForm);
         }
-
- 
-
         [Fact]
         public void ShowBetFormCommand_WhenExecuted_SetsShowBetFormTrue()
         {
@@ -211,9 +205,6 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             Assert.True(vm.ShowBetForm);
         }
-
-
-
         [Fact]
         public async Task PlaceBetCommand_WhenNoBattleLoaded_SetsValidationStatusMessage()
         {
@@ -236,9 +227,9 @@ namespace MovieApp.Tests.Unit.ViewModels
                 SecondMovie = new Movie { MovieId = 11 }
             };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).Returns(Task.FromResult<Bet?>(null));
-            _mockBattleService.Setup(s => s.PlaceBet(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).Returns(Task.FromResult<Bet?>(null));
+            mockBattleService.Setup(s => s.PlaceBet(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(new Bet()));
 
             BattleViewModel vm = CreateViewModel();
@@ -249,7 +240,7 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.PlaceBetCommand.Execute(null);
             await Task.Delay(100);
 
-            _mockBattleService.Verify(s => s.PlaceBet(CurrentUserId, battle.BattleId, 10, 50), Times.Once);
+            mockBattleService.Verify(s => s.PlaceBet(CurrentUserId, battle.BattleId, 10, 50), Times.Once);
         }
 
         [Fact]
@@ -263,9 +254,9 @@ namespace MovieApp.Tests.Unit.ViewModels
                 SecondMovie = new Movie { MovieId = 11 }
             };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
-            _mockBattleService.Setup(s => s.PlaceBet(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.PlaceBet(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ThrowsAsync(new InvalidOperationException("Already bet"));
 
             BattleViewModel vm = CreateViewModel();
@@ -277,8 +268,6 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             Assert.Equal("Already bet", vm.StatusMessage);
         }
-
-
         [Fact]
         public async Task ForceSettleCommand_WhenNoActiveBattle_SetsStatusMessage()
         {
@@ -301,10 +290,10 @@ namespace MovieApp.Tests.Unit.ViewModels
                 SecondMovie = new Movie { MovieId = 11 }
             };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).Returns(Task.FromResult<Bet?>(null));
-            _mockBattleService.Setup(s => s.ForceSettleBattleAsync(battle.BattleId)).Returns(Task.CompletedTask);
-            _mockBattleService.Setup(s => s.SettleExpiredBattlesAsync()).Returns(Task.CompletedTask);
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).Returns(Task.FromResult<Bet?>(null));
+            mockBattleService.Setup(s => s.ForceSettleBattleAsync(battle.BattleId)).Returns(Task.CompletedTask);
+            mockBattleService.Setup(s => s.SettleExpiredBattlesAsync()).Returns(Task.CompletedTask);
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
@@ -313,13 +302,15 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(vm.StatusMessage) && !string.IsNullOrEmpty(vm.StatusMessage))
+                {
                     capturedMessage = vm.StatusMessage;
+                }
             };
 
             vm.ForceSettleCommand.Execute(null);
             await Task.Delay(300);
 
-            _mockBattleService.Verify(s => s.ForceSettleBattleAsync(battle.BattleId), Times.Once);
+            mockBattleService.Verify(s => s.ForceSettleBattleAsync(battle.BattleId), Times.Once);
             Assert.Equal("Battle settled! Points have been distributed.", capturedMessage);
         }
 
@@ -335,16 +326,16 @@ namespace MovieApp.Tests.Unit.ViewModels
             };
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
-            _mockBattleService.Setup(s => s.ForceSettleBattleAsync(battle.BattleId))
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.ForceSettleBattleAsync(battle.BattleId))
                 .Returns(tcs.Task);
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
 
             vm.ForceSettleCommand.Execute(null);
-            await Task.Delay(30); 
+            await Task.Delay(30);
 
             Assert.True(vm.IsProcessing);
 
@@ -365,9 +356,9 @@ namespace MovieApp.Tests.Unit.ViewModels
                 SecondMovie = new Movie { MovieId = 11 }
             };
 
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
-            _mockBattleService.Setup(s => s.ForceSettleBattleAsync(battle.BattleId))
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.ForceSettleBattleAsync(battle.BattleId))
                 .ThrowsAsync(new InvalidOperationException("Cannot settle"));
 
             BattleViewModel vm = CreateViewModel();
@@ -378,13 +369,11 @@ namespace MovieApp.Tests.Unit.ViewModels
             Assert.Equal("Cannot settle", vm.StatusMessage);
             Assert.False(vm.IsProcessing);
         }
-
-  
         [Fact]
         public async Task ResetDemoCommand_WhenExecuted_CallsResetAndCreateDemoBattle()
         {
-            _mockBattleService.Setup(s => s.ResetAllBattlesForDemoAsync()).Returns(Task.CompletedTask);
-            _mockBattleService.Setup(s => s.CreateDemoBattleAsync()).Returns(Task.FromResult(new Battle()));
+            mockBattleService.Setup(s => s.ResetAllBattlesForDemoAsync()).Returns(Task.CompletedTask);
+            mockBattleService.Setup(s => s.CreateDemoBattleAsync()).Returns(Task.FromResult(new Battle()));
 
             BattleViewModel vm = CreateViewModel();
 
@@ -392,21 +381,23 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(vm.StatusMessage) && !string.IsNullOrEmpty(vm.StatusMessage))
+                {
                     capturedMessage = vm.StatusMessage;
+                }
             };
 
             vm.ResetDemoCommand.Execute(null);
             await Task.Delay(300);
 
-            _mockBattleService.Verify(s => s.ResetAllBattlesForDemoAsync(), Times.Once);
-            _mockBattleService.Verify(s => s.CreateDemoBattleAsync(), Times.Once);
+            mockBattleService.Verify(s => s.ResetAllBattlesForDemoAsync(), Times.Once);
+            mockBattleService.Verify(s => s.CreateDemoBattleAsync(), Times.Once);
             Assert.Equal("Demo reset! A new battle has been created — place your bet!", capturedMessage);
         }
 
         [Fact]
         public async Task ResetDemoCommand_WhenServiceThrowsInvalidOperation_SetsStatusMessageAndClearsIsProcessing()
         {
-            _mockBattleService.Setup(s => s.ResetAllBattlesForDemoAsync())
+            mockBattleService.Setup(s => s.ResetAllBattlesForDemoAsync())
                 .ThrowsAsync(new InvalidOperationException("Reset failed"));
 
             BattleViewModel vm = CreateViewModel();
@@ -416,9 +407,6 @@ namespace MovieApp.Tests.Unit.ViewModels
             Assert.Equal("Reset failed", vm.StatusMessage);
             Assert.False(vm.IsProcessing);
         }
-
-
-
         [Fact]
         public async Task CanBet_WhenBattleActiveAndNoExistingBet_ReturnsTrue()
         {
@@ -429,8 +417,8 @@ namespace MovieApp.Tests.Unit.ViewModels
                 FirstMovie = new Movie { MovieId = 10 },
                 SecondMovie = new Movie { MovieId = 11 }
             };
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
@@ -448,8 +436,8 @@ namespace MovieApp.Tests.Unit.ViewModels
                 FirstMovie = new Movie { MovieId = 10 },
                 SecondMovie = new Movie { MovieId = 11 }
             };
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync(new Bet());
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync(new Bet());
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);
@@ -467,9 +455,9 @@ namespace MovieApp.Tests.Unit.ViewModels
                 FirstMovie = new Movie { MovieId = 10 },
                 SecondMovie = new Movie { MovieId = 11 }
             };
-            _mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
-            _mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
-            _mockBattleService.Setup(s => s.DetermineWinner(battle.BattleId)).ThrowsAsync(new Exception());
+            mockBattleService.Setup(s => s.GetCurrentBattleForUser(CurrentUserId)).ReturnsAsync(battle);
+            mockBattleService.Setup(s => s.GetBet(CurrentUserId, battle.BattleId)).ReturnsAsync((Bet?)null);
+            mockBattleService.Setup(s => s.DetermineWinner(battle.BattleId)).ThrowsAsync(new Exception());
 
             BattleViewModel vm = CreateViewModel();
             await vm.LoadBattleAsync(settleExpired: false);

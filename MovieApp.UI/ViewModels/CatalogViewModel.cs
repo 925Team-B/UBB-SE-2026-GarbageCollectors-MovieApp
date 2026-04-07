@@ -1,4 +1,5 @@
 #nullable enable
+namespace MovieApp.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,18 +9,16 @@ using System.Windows.Input;
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Models;
 
-namespace MovieApp.UI.ViewModels;
-
 /// <summary>
 /// ViewModel for the movie catalog view with search and filter capabilities.
 /// </summary>
 public class CatalogViewModel : ViewModelBase
 {
-    private readonly ICatalogService _catalogService;
-    private string _searchQuery = string.Empty;
-    private string _selectedGenre = "All Genres";
-    private double _minimumRating;
-    private Movie? _selectedMovie;
+    private readonly ICatalogService catalogService;
+    private string searchQuery = string.Empty;
+    private string selectedGenre = "All Genres";
+    private double minimumRating;
+    private Movie? selectedMovie;
 
     /// <summary>
     /// Event raised when a movie is selected for detail view.
@@ -32,27 +31,27 @@ public class CatalogViewModel : ViewModelBase
     /// <param name="catalogService">The catalog service.</param>
     public CatalogViewModel(ICatalogService catalogService)
     {
-        _catalogService = catalogService;
+        this.catalogService = catalogService;
 
         // Commands
-        SelectMovieCommand = new RelayCommand(param =>
+        this.SelectMovieCommand = new RelayCommand(param =>
         {
             if (param is Movie movie)
             {
-                SelectedMovie = movie;
-                MovieSelected?.Invoke(movie);
+                this.SelectedMovie = movie;
+                this.MovieSelected?.Invoke(movie);
             }
         });
 
-        LoadMoviesCommand = new AsyncRelayCommand(async _ => await LoadMoviesAsync());
-        ClearFiltersCommand = new AsyncRelayCommand(async _ => await ClearFiltersAsync());
+        this.LoadMoviesCommand = new AsyncRelayCommand(async _ => await this.LoadMoviesAsync());
+        this.ClearFiltersCommand = new AsyncRelayCommand(async _ => await this.ClearFiltersAsync());
     }
 
     /// <summary>Gets the collection of movies to display.</summary>
-    public ObservableCollection<Movie> Movies { get; } = new();
+    public ObservableCollection<Movie> Movies { get; } = new ();
 
     /// <summary>Gets the list of available genres.</summary>
-    public ObservableCollection<string> Genres { get; } = new()
+    public ObservableCollection<string> Genres { get; } = new ()
     {
         "All Genres", "Action", "Comedy", "Crime", "Drama", "Sci-Fi"
     };
@@ -60,12 +59,12 @@ public class CatalogViewModel : ViewModelBase
     /// <summary>Gets or sets the search query text.</summary>
     public string SearchQuery
     {
-        get => _searchQuery;
+        get => this.searchQuery;
         set
         {
-            if (SetProperty(ref _searchQuery, value))
+            if (this.SetProperty(ref this.searchQuery, value))
             {
-                _ = UpdateResultsAsync();
+                _ = this.UpdateResultsAsync();
             }
         }
     }
@@ -73,12 +72,12 @@ public class CatalogViewModel : ViewModelBase
     /// <summary>Gets or sets the selected genre filter.</summary>
     public string SelectedGenre
     {
-        get => _selectedGenre;
+        get => this.selectedGenre;
         set
         {
-            if (SetProperty(ref _selectedGenre, value))
+            if (this.SetProperty(ref this.selectedGenre, value))
             {
-                _ = UpdateResultsAsync();
+                _ = this.UpdateResultsAsync();
             }
         }
     }
@@ -86,12 +85,12 @@ public class CatalogViewModel : ViewModelBase
     /// <summary>Gets or sets the minimum rating filter.</summary>
     public double MinimumRating
     {
-        get => _minimumRating;
+        get => this.minimumRating;
         set
         {
-            if (SetProperty(ref _minimumRating, value))
+            if (this.SetProperty(ref this.minimumRating, value))
             {
-                _ = UpdateResultsAsync();
+                _ = this.UpdateResultsAsync();
             }
         }
     }
@@ -99,8 +98,8 @@ public class CatalogViewModel : ViewModelBase
     /// <summary>Gets or sets the currently selected movie.</summary>
     public Movie? SelectedMovie
     {
-        get => _selectedMovie;
-        set => SetProperty(ref _selectedMovie, value);
+        get => this.selectedMovie;
+        set => this.SetProperty(ref this.selectedMovie, value);
     }
 
     /// <summary>Gets the command to select a movie.</summary>
@@ -117,11 +116,11 @@ public class CatalogViewModel : ViewModelBase
     /// </summary>
     public async Task LoadMoviesAsync()
     {
-        var movies = await _catalogService.GetAllMovies();
-        Movies.Clear();
+        var movies = await this.catalogService.GetAllMovies();
+        this.Movies.Clear();
         foreach (var movie in movies)
         {
-            Movies.Add(movie);
+            this.Movies.Add(movie);
         }
     }
 
@@ -133,32 +132,32 @@ public class CatalogViewModel : ViewModelBase
         // 1. Get the base list of movies (either all, or by search query)
         IEnumerable<Movie> currentMovies;
 
-        if (string.IsNullOrWhiteSpace(SearchQuery))
+        if (string.IsNullOrWhiteSpace(this.SearchQuery))
         {
-            currentMovies = await _catalogService.GetAllMovies();
+            currentMovies = await this.catalogService.GetAllMovies();
         }
         else
         {
-            currentMovies = await _catalogService.SearchMovies(SearchQuery);
+            currentMovies = await this.catalogService.SearchMovies(this.SearchQuery);
         }
 
         // 2. Apply the Genre filter in-memory if one is selected
-        if (!string.IsNullOrWhiteSpace(SelectedGenre) && SelectedGenre != "All Genres")
+        if (!string.IsNullOrWhiteSpace(this.SelectedGenre) && this.SelectedGenre != "All Genres")
         {
-            currentMovies = currentMovies.Where(m => m.Genre == SelectedGenre);
+            currentMovies = currentMovies.Where(m => m.Genre == this.SelectedGenre);
         }
 
         // 3. Apply the Rating filter in-memory
-        if (MinimumRating > 0)
+        if (this.MinimumRating > 0)
         {
-            currentMovies = currentMovies.Where(m => m.AverageRating >= MinimumRating);
+            currentMovies = currentMovies.Where(m => m.AverageRating >= this.MinimumRating);
         }
 
         // 4. Update the UI collection
-        Movies.Clear();
+        this.Movies.Clear();
         foreach (var movie in currentMovies)
         {
-            Movies.Add(movie);
+            this.Movies.Add(movie);
         }
     }
 
@@ -170,28 +169,28 @@ public class CatalogViewModel : ViewModelBase
         // Temporarily disable the unified update so we don't trigger it 3 times in a row
         bool needsUpdate = false;
 
-        if (!string.IsNullOrWhiteSpace(_searchQuery))
+        if (!string.IsNullOrWhiteSpace(this.searchQuery))
         {
-            SetProperty(ref _searchQuery, string.Empty, nameof(SearchQuery));
+            this.SetProperty(ref this.searchQuery, string.Empty, nameof(this.SearchQuery));
             needsUpdate = true;
         }
 
-        if (_selectedGenre != "All Genres")
+        if (this.selectedGenre != "All Genres")
         {
-            SetProperty(ref _selectedGenre, "All Genres", nameof(SelectedGenre));
+            SetProperty(ref selectedGenre, "All Genres", nameof(this.SelectedGenre));
             needsUpdate = true;
         }
 
-        if (_minimumRating > 0)
+        if (this.minimumRating > 0)
         {
-            SetProperty(ref _minimumRating, 0, nameof(MinimumRating));
+            this.SetProperty(ref this.minimumRating, 0, nameof(this.MinimumRating));
             needsUpdate = true;
         }
 
         // Only hit the database/update UI once after all properties are reset
         if (needsUpdate)
         {
-            await UpdateResultsAsync();
+            await this.UpdateResultsAsync();
         }
     }
 }

@@ -12,38 +12,38 @@ namespace MovieApp.UI.ViewModels;
 /// </summary>
 public class MovieDetailViewModel : ViewModelBase
 {
-    private readonly IReviewService _reviewService;
-    private readonly ICommentService _commentService;
-    private readonly ExternalReviewService _externalReviewService;
-    private readonly int _currentUserId;
+    private readonly IReviewService reviewService;
+    private readonly ICommentService commentService;
+    private readonly ExternalReviewService externalReviewService;
+    private readonly int currentUserId;
 
-    private Movie? _movie;
-    private double _averageRating;
-    private float _newReviewRating;
-    private string _newReviewContent = string.Empty;
-    private string _newCommentContent = string.Empty;
-    private bool _hasUserReview;
-    private bool _showExtraReviewForm;
-    private string _statusMessage = string.Empty;
-    private bool _isLoadingExternalReviews;
-    private double _criticScore;
-    private double _audienceScore;
-    private bool _isPolarized;
-    private int _replyToCommentId;
-    private string _replyContent = string.Empty;
+    private Movie? movie;
+    private double averageRating;
+    private float newReviewRating;
+    private string newReviewContent = string.Empty;
+    private string newCommentContent = string.Empty;
+    private bool hasUserReview;
+    private bool showExtraReviewForm;
+    private string statusMessage = string.Empty;
+    private bool isLoadingExternalReviews;
+    private double criticScore;
+    private double audienceScore;
+    private bool isPolarized;
+    private int replyToCommentId;
+    private string replyContent = string.Empty;
 
     // Extra review fields
-    private int _cinRating;
-    private string _cinText = string.Empty;
-    private int _actingRating;
-    private string _actingText = string.Empty;
-    private int _cgiRating;
-    private string _cgiText = string.Empty;
-    private int _plotRating;
-    private string _plotText = string.Empty;
-    private int _soundRating;
-    private string _soundText = string.Empty;
-    private string _mainExtraText = string.Empty;
+    private int cinRating;
+    private string cinText = string.Empty;
+    private int actingRating;
+    private string actingText = string.Empty;
+    private int cgiRating;
+    private string cgiText = string.Empty;
+    private int plotRating;
+    private string plotText = string.Empty;
+    private int soundRating;
+    private string soundText = string.Empty;
+    private string mainExtraText = string.Empty;
 
     /// <summary>
     /// Event raised when navigating back to catalog.
@@ -56,10 +56,10 @@ public class MovieDetailViewModel : ViewModelBase
     public MovieDetailViewModel(IReviewService reviewService, ICommentService commentService,
         ExternalReviewService externalReviewService, int currentUserId = 1)
     {
-        _reviewService = reviewService;
-        _commentService = commentService;
-        _externalReviewService = externalReviewService;
-        _currentUserId = currentUserId;
+        this.reviewService = reviewService;
+        this.commentService = commentService;
+        this.externalReviewService = externalReviewService;
+        this.currentUserId = currentUserId;
 
         SubmitReviewCommand = new AsyncRelayCommand(async _ => await SubmitReviewAsync());
         SubmitExtraReviewCommand = new AsyncRelayCommand(async _ => await SubmitExtraReviewAsync());
@@ -85,141 +85,141 @@ public class MovieDetailViewModel : ViewModelBase
     }
 
     /// <summary>Gets the collection of reviews for this movie.</summary>
-    public ObservableCollection<Review> Reviews { get; } = new();
+    public ObservableCollection<Review> Reviews { get; } = new ();
 
     /// <summary>Gets the collection of comments for this movie.</summary>
-    public ObservableCollection<Comment> Comments { get; } = new();
+    public ObservableCollection<Comment> Comments { get; } = new ();
 
     /// <summary>Gets the collection of root-level comments for this movie.</summary>
-    public ObservableCollection<Comment> RootComments { get; } = new();
+    public ObservableCollection<Comment> RootComments { get; } = new ();
 
     /// <summary>Gets the collection of external critic reviews.</summary>
-    public ObservableCollection<CriticReview> ExternalReviews { get; } = new();
+    public ObservableCollection<CriticReview> ExternalReviews { get; } = new ();
 
     /// <summary>Gets the lexicon analysis results.</summary>
-    public ObservableCollection<string> LexiconWords { get; } = new();
+    public ObservableCollection<string> LexiconWords { get; } = new ();
 
     /// <summary>Gets or sets the current movie.</summary>
     public Movie? Movie
     {
-        get => _movie;
-        set => SetProperty(ref _movie, value);
+        get => movie;
+        set => SetProperty(ref movie, value);
     }
 
     /// <summary>Gets or sets the average rating.</summary>
     public double AverageRating
     {
-        get => _averageRating;
-        set => SetProperty(ref _averageRating, value);
+        get => averageRating;
+        set => SetProperty(ref averageRating, value);
     }
 
     /// <summary>Gets or sets the new review star rating.</summary>
     public float NewReviewRating
     {
-        get => _newReviewRating;
-        set => SetProperty(ref _newReviewRating, value);
+        get => newReviewRating;
+        set => SetProperty(ref newReviewRating, value);
     }
 
     /// <summary>Gets or sets the new review content.</summary>
     public string NewReviewContent
     {
-        get => _newReviewContent;
-        set => SetProperty(ref _newReviewContent, value);
+        get => newReviewContent;
+        set => SetProperty(ref newReviewContent, value);
     }
 
     /// <summary>Gets or sets the new comment content.</summary>
     public string NewCommentContent
     {
-        get => _newCommentContent;
-        set => SetProperty(ref _newCommentContent, value);
+        get => newCommentContent;
+        set => SetProperty(ref newCommentContent, value);
     }
 
     /// <summary>Gets or sets whether the current user has reviewed this movie.</summary>
     public bool HasUserReview
     {
-        get => _hasUserReview;
-        set => SetProperty(ref _hasUserReview, value);
+        get => hasUserReview;
+        set => SetProperty(ref hasUserReview, value);
     }
 
     /// <summary>Gets or sets whether the extra review form is visible.</summary>
     public bool ShowExtraReviewForm
     {
-        get => _showExtraReviewForm;
-        set => SetProperty(ref _showExtraReviewForm, value);
+        get => showExtraReviewForm;
+        set => SetProperty(ref showExtraReviewForm, value);
     }
 
     /// <summary>Gets or sets a status message.</summary>
     public string StatusMessage
     {
-        get => _statusMessage;
-        set => SetProperty(ref _statusMessage, value);
+        get => statusMessage;
+        set => SetProperty(ref statusMessage, value);
     }
 
     /// <summary>Gets or sets whether external reviews are loading.</summary>
     public bool IsLoadingExternalReviews
     {
-        get => _isLoadingExternalReviews;
-        set => SetProperty(ref _isLoadingExternalReviews, value);
+        get => isLoadingExternalReviews;
+        set => SetProperty(ref isLoadingExternalReviews, value);
     }
 
     /// <summary>Gets or sets the critic score.</summary>
     public double CriticScore
     {
-        get => _criticScore;
-        set => SetProperty(ref _criticScore, value);
+        get => criticScore;
+        set => SetProperty(ref criticScore, value);
     }
 
     /// <summary>Gets or sets the audience score.</summary>
     public double AudienceScore
     {
-        get => _audienceScore;
-        set => SetProperty(ref _audienceScore, value);
+        get => audienceScore;
+        set => SetProperty(ref audienceScore, value);
     }
 
     /// <summary>Gets or sets whether scores are polarized.</summary>
     public bool IsPolarized
     {
-        get => _isPolarized;
-        set => SetProperty(ref _isPolarized, value);
+        get => isPolarized;
+        set => SetProperty(ref isPolarized, value);
     }
 
     /// <summary>Gets or sets the comment ID being replied to.</summary>
     public int ReplyToCommentId
     {
-        get => _replyToCommentId;
-        set => SetProperty(ref _replyToCommentId, value);
+        get => replyToCommentId;
+        set => SetProperty(ref replyToCommentId, value);
     }
 
     /// <summary>Gets or sets the reply content.</summary>
     public string ReplyContent
     {
-        get => _replyContent;
-        set => SetProperty(ref _replyContent, value);
+        get => replyContent;
+        set => SetProperty(ref replyContent, value);
     }
 
     // Extra review properties
     /// <summary>Gets or sets the cinematography rating.</summary>
-    public int CinRating { get => _cinRating; set => SetProperty(ref _cinRating, value); }
+    public int CinRating { get => cinRating; set => SetProperty(ref cinRating, value); }
     /// <summary>Gets or sets the cinematography text.</summary>
-    public string CinText { get => _cinText; set => SetProperty(ref _cinText, value); }
+    public string CinText { get => cinText; set => SetProperty(ref cinText, value); }
     /// <summary>Gets or sets the acting rating.</summary>
-    public int ActingRating { get => _actingRating; set => SetProperty(ref _actingRating, value); }
+    public int ActingRating { get => actingRating; set => SetProperty(ref actingRating, value); }
     /// <summary>Gets or sets the acting text.</summary>
-    public string ActingText { get => _actingText; set => SetProperty(ref _actingText, value); }
+    public string ActingText { get => actingText; set => SetProperty(ref actingText, value); }
     /// <summary>Gets or sets the CGI rating.</summary>
-    public int CgiRating { get => _cgiRating; set => SetProperty(ref _cgiRating, value); }
+    public int CgiRating { get => cgiRating; set => SetProperty(ref cgiRating, value); }
     /// <summary>Gets or sets the CGI text.</summary>
-    public string CgiText { get => _cgiText; set => SetProperty(ref _cgiText, value); }
+    public string CgiText { get => cgiText; set => SetProperty(ref cgiText, value); }
     /// <summary>Gets or sets the plot rating.</summary>
-    public int PlotRating { get => _plotRating; set => SetProperty(ref _plotRating, value); }
+    public int PlotRating { get => plotRating; set => SetProperty(ref plotRating, value); }
     /// <summary>Gets or sets the plot text.</summary>
-    public string PlotText { get => _plotText; set => SetProperty(ref _plotText, value); }
+    public string PlotText { get => plotText; set => SetProperty(ref plotText, value); }
     /// <summary>Gets or sets the sound rating.</summary>
-    public int SoundRating { get => _soundRating; set => SetProperty(ref _soundRating, value); }
+    public int SoundRating { get => soundRating; set => SetProperty(ref soundRating, value); }
     /// <summary>Gets or sets the sound text.</summary>
-    public string SoundText { get => _soundText; set => SetProperty(ref _soundText, value); }
+    public string SoundText { get => soundText; set => SetProperty(ref soundText, value); }
     /// <summary>Gets or sets the main extra review text.</summary>
-    public string MainExtraText { get => _mainExtraText; set => SetProperty(ref _mainExtraText, value); }
+    public string MainExtraText { get => mainExtraText; set => SetProperty(ref mainExtraText, value); }
 
     /// <summary>Gets the command to submit a review.</summary>
     public ICommand SubmitReviewCommand { get; }
@@ -251,16 +251,16 @@ public class MovieDetailViewModel : ViewModelBase
         ShowExtraReviewForm = false;
 
         // Load reviews
-        var reviews = await _reviewService.GetReviewsForMovie(movie.MovieId);
+        var reviews = await reviewService.GetReviewsForMovie(movie.MovieId);
         Reviews.Clear();
         foreach (var review in reviews)
             Reviews.Add(review);
 
-        AverageRating = await _reviewService.GetAverageRating(movie.MovieId);
-        HasUserReview = reviews.Any(r => r.User?.UserId == _currentUserId);
+        AverageRating = await reviewService.GetAverageRating(movie.MovieId);
+        HasUserReview = reviews.Any(r => r.User?.UserId == currentUserId);
 
         // Load comments
-        var comments = await _commentService.GetCommentsForMovie(movie.MovieId);
+        var comments = await commentService.GetCommentsForMovie(movie.MovieId);
         RebuildCommentTree(comments);
 
         // Load external reviews asynchronously
@@ -275,17 +275,17 @@ public class MovieDetailViewModel : ViewModelBase
         IsLoadingExternalReviews = true;
         try
         {
-            var reviews = await _externalReviewService.GetExternalReviews(movieTitle, releaseYear);
+            var reviews = await externalReviewService.GetExternalReviews(movieTitle, releaseYear);
             ExternalReviews.Clear();
             foreach (var review in reviews)
                 ExternalReviews.Add(review);
 
-            var (criticScore, audienceScore) = await _externalReviewService.GetAggregateScores(movieTitle);
+            var (criticScore, audienceScore) = await externalReviewService.GetAggregateScores(movieTitle);
             CriticScore = criticScore;
             AudienceScore = audienceScore;
-            IsPolarized = _externalReviewService.IsPolarized(criticScore, audienceScore, threshold: 0.3);
+            IsPolarized = externalReviewService.IsPolarized(criticScore, audienceScore, threshold: 0.3);
 
-            var lexicon = _externalReviewService.AnalyseLexicon(reviews);
+            var lexicon = externalReviewService.AnalyseLexicon(reviews);
             LexiconWords.Clear();
             foreach (var (word, count) in lexicon)
                 LexiconWords.Add($"{word} ({count})");
@@ -310,7 +310,7 @@ public class MovieDetailViewModel : ViewModelBase
 
         try
         {
-            await _reviewService.AddReview(_currentUserId, Movie.MovieId, NewReviewRating, NewReviewContent);
+            await reviewService.AddReview(currentUserId, Movie.MovieId, NewReviewRating, NewReviewContent);
             StatusMessage = "Review submitted successfully!";
             NewReviewContent = string.Empty;
             NewReviewRating = 0;
@@ -329,7 +329,7 @@ public class MovieDetailViewModel : ViewModelBase
     {
         if (Movie == null) return;
 
-        var userReview = Reviews.FirstOrDefault(r => r.User?.UserId == _currentUserId);
+        var userReview = Reviews.FirstOrDefault(r => r.User?.UserId == currentUserId);
         if (userReview == null)
         {
             StatusMessage = "You must submit a regular review first.";
@@ -338,7 +338,7 @@ public class MovieDetailViewModel : ViewModelBase
 
         try
         {
-            await _reviewService.SubmitExtraReview(userReview.ReviewId,
+            await reviewService.SubmitExtraReview(userReview.ReviewId,
                 CgiRating, CgiText, ActingRating, ActingText,
                 PlotRating, PlotText, SoundRating, SoundText,
                 CinRating, CinText, MainExtraText);
@@ -361,9 +361,9 @@ public class MovieDetailViewModel : ViewModelBase
 
         try
         {
-            await _commentService.AddComment(_currentUserId, Movie.MovieId, NewCommentContent);
+            await commentService.AddComment(currentUserId, Movie.MovieId, NewCommentContent);
             NewCommentContent = string.Empty;
-            var comments = await _commentService.GetCommentsForMovie(Movie.MovieId);
+            var comments = await commentService.GetCommentsForMovie(Movie.MovieId);
             RebuildCommentTree(comments);
         }
         catch (InvalidOperationException ex)
@@ -381,10 +381,10 @@ public class MovieDetailViewModel : ViewModelBase
 
         try
         {
-            await _commentService.AddReply(_currentUserId, ReplyToCommentId, ReplyContent);
+            await commentService.AddReply(currentUserId, ReplyToCommentId, ReplyContent);
             ReplyContent = string.Empty;
             ReplyToCommentId = 0;
-            var comments = await _commentService.GetCommentsForMovie(Movie.MovieId);
+            var comments = await commentService.GetCommentsForMovie(Movie.MovieId);
             RebuildCommentTree(comments);
         }
         catch (InvalidOperationException ex)
@@ -446,7 +446,7 @@ public class MovieDetailViewModel : ViewModelBase
 
         try
         {
-            await _reviewService.DeleteReview(reviewId);
+            await reviewService.DeleteReview(reviewId);
             StatusMessage = "Review deleted.";
             await LoadMovieAsync(Movie);
         }

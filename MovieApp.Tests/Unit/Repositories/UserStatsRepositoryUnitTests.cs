@@ -7,11 +7,11 @@ namespace MovieApp.Tests.Unit.Repositories
 {
     public class UserStatsRepositoryUnitTests
     {
-        private readonly UserStatsRepository _repo;
+        private readonly UserStatsRepository repo;
 
         public UserStatsRepositoryUnitTests()
         {
-            _repo = new UserStatsRepository("fake-connection-string");
+            repo = new UserStatsRepository("fake-connection-string");
         }
 
         [Fact]
@@ -24,7 +24,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 WeeklyScore = 20
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(stats));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(stats));
             Assert.Equal("UserStats.User is required for insert.", ex.Message);
         }
 
@@ -39,7 +39,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 WeeklyScore = 30
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(stats));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(stats));
             Assert.Equal("UserStats.User is required for update.", ex.Message);
         }
     }

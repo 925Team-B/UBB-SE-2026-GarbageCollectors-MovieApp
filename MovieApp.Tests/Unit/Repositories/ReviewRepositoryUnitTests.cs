@@ -7,11 +7,11 @@ namespace MovieApp.Tests.Unit.Repositories
 {
     public class ReviewRepositoryUnitTests
     {
-        private readonly ReviewRepository _repo;
+        private readonly ReviewRepository repo;
 
         public ReviewRepositoryUnitTests()
         {
-            _repo = new ReviewRepository("fake-connection-string");
+            repo = new ReviewRepository("fake-connection-string");
         }
 
         [Fact]
@@ -27,7 +27,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 IsExtraReview = false
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(review));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(review));
             Assert.Equal("Review.User is required for insert.", ex.Message);
         }
 
@@ -44,7 +44,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 IsExtraReview = false
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(review));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(review));
             Assert.Equal("Review.Movie is required for insert.", ex.Message);
         }
 
@@ -62,7 +62,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 IsExtraReview = true
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(review));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(review));
             Assert.Equal("Review.User is required for update.", ex.Message);
         }
 
@@ -80,7 +80,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 IsExtraReview = true
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(review));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(review));
             Assert.Equal("Review.Movie is required for update.", ex.Message);
         }
     }

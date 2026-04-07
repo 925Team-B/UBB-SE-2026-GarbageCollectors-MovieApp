@@ -10,7 +10,7 @@ namespace MovieApp.UI;
 /// </summary>
 public sealed partial class MainWindow : Window
 {
-    private readonly MainWindowViewModel _viewModel;
+    private readonly MainWindowViewModel viewModel;
 
     /// <summary>
     /// Initializes a new instance of <see cref="MainWindow"/>.
@@ -19,22 +19,22 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();
 
-        _viewModel = App.Services.GetRequiredService<MainWindowViewModel>();
+        viewModel = App.Services.GetRequiredService<MainWindowViewModel>();
 
         // Set DataContext for child views
-        CatalogViewControl.DataContext = _viewModel.CatalogViewModel;
-        MovieDetailViewControl.DataContext = _viewModel.MovieDetailViewModel;
-        BattleViewControl.DataContext = _viewModel.BattleViewModel;
-        ForumViewControl.DataContext = _viewModel.ForumViewModel;
-        ProfileViewControl.DataContext = _viewModel.ProfileViewModel;
+        CatalogViewControl.DataContext = viewModel.CatalogViewModel;
+        MovieDetailViewControl.DataContext = viewModel.MovieDetailViewModel;
+        BattleViewControl.DataContext = viewModel.BattleViewModel;
+        ForumViewControl.DataContext = viewModel.ForumViewModel;
+        ProfileViewControl.DataContext = viewModel.ProfileViewModel;
 
         // Wire up detail view navigation
-        _viewModel.CatalogViewModel.MovieSelected += movie =>
+        viewModel.CatalogViewModel.MovieSelected += movie =>
         {
             MovieDetailOverlay.Visibility = Visibility.Visible;
         };
 
-        _viewModel.MovieDetailViewModel.NavigateBack += () =>
+        viewModel.MovieDetailViewModel.NavigateBack += () =>
         {
             MovieDetailOverlay.Visibility = Visibility.Collapsed;
         };
@@ -44,7 +44,7 @@ public sealed partial class MainWindow : Window
         // Load initial data
         this.Activated += async (s, e) =>
         {
-            _viewModel.LoadDataCommand.Execute(null);
+            viewModel.LoadDataCommand.Execute(null);
         };
     }
 }

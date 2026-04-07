@@ -35,8 +35,6 @@ namespace MovieApp.Tests.Unit.Models
             Assert.Equal("Breathtaking visuals...", review.Snippet);
             Assert.Equal("https://nytimes.com/review/1", review.Url);
         }
-
-
         [Fact]
         public void ScoreDisplay_WhenScoreIsPositive_ReturnsFormattedString()
         {

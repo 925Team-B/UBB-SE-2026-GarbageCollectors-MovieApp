@@ -1,34 +1,34 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class UserStatsRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly UserStatsRepository _repo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly UserStatsRepository repo;
 
         public UserStatsRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_UserStats_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_UserStats_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new UserStatsRepository(_connectionString);
+            repo = new UserStatsRepository(connectionString);
             ClearTables();
         }
 
         private void ClearTables()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM UserStats", conn).ExecuteNonQuery();
@@ -48,10 +48,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -67,11 +67,11 @@ END", conn);
                 WeeklyScore = 25
             };
 
-            int id = _repo.Insert(stats);
+            int id = repo.Insert(stats);
 
             Assert.True(id > 0);
 
-            var insertedStats = _repo.GetById(id);
+            var insertedStats = repo.GetById(id);
             Assert.NotNull(insertedStats);
             Assert.Equal(100, insertedStats!.TotalPoints);
             Assert.Equal(25, insertedStats.WeeklyScore);
@@ -88,27 +88,27 @@ END", conn);
                 WeeklyScore = 25
             };
 
-            Assert.Throws<InvalidOperationException>(() => _repo.Insert(stats));
+            Assert.Throws<InvalidOperationException>(() => repo.Insert(stats));
         }
 
         [Fact]
         public void GetAll_WhenStatsExist_ReturnsStats()
         {
-            _repo.Insert(new UserStats
+            repo.Insert(new UserStats
             {
                 User = ExistingUser(1),
                 TotalPoints = 10,
                 WeeklyScore = 2
             });
 
-            _repo.Insert(new UserStats
+            repo.Insert(new UserStats
             {
                 User = ExistingUser(2),
                 TotalPoints = 20,
                 WeeklyScore = 5
             });
 
-            var allStats = _repo.GetAll();
+            var allStats = repo.GetAll();
 
             Assert.Equal(2, allStats.Count);
         }
@@ -123,9 +123,9 @@ END", conn);
                 WeeklyScore = 10
             };
 
-            int id = _repo.Insert(stats);
+            int id = repo.Insert(stats);
 
-            var result = _repo.GetById(id);
+            var result = repo.GetById(id);
 
             Assert.NotNull(result);
             Assert.Equal(id, result!.StatsId);
@@ -137,7 +137,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingStats_ReturnsNull()
         {
-            var result = _repo.GetById(999999);
+            var result = repo.GetById(999999);
 
             Assert.Null(result);
         }
@@ -145,14 +145,14 @@ END", conn);
         [Fact]
         public void GetByUserId_ExistingUser_ReturnsStats()
         {
-            _repo.Insert(new UserStats
+            repo.Insert(new UserStats
             {
                 User = ExistingUser(2),
                 TotalPoints = 70,
                 WeeklyScore = 12
             });
 
-            var result = _repo.GetByUserId(2);
+            var result = repo.GetByUserId(2);
 
             Assert.NotNull(result);
             Assert.Equal(70, result!.TotalPoints);
@@ -163,7 +163,7 @@ END", conn);
         [Fact]
         public void GetByUserId_NonExistingUser_ReturnsNull()
         {
-            var result = _repo.GetByUserId(999999);
+            var result = repo.GetByUserId(999999);
 
             Assert.Null(result);
         }
@@ -178,18 +178,18 @@ END", conn);
                 WeeklyScore = 8
             };
 
-            int id = _repo.Insert(stats);
+            int id = repo.Insert(stats);
 
             stats.StatsId = id;
             stats.User = ExistingUser(2);
             stats.TotalPoints = 90;
             stats.WeeklyScore = 30;
 
-            bool updated = _repo.Update(stats);
+            bool updated = repo.Update(stats);
 
             Assert.True(updated);
 
-            var updatedStats = _repo.GetById(id);
+            var updatedStats = repo.GetById(id);
             Assert.NotNull(updatedStats);
             Assert.Equal(90, updatedStats!.TotalPoints);
             Assert.Equal(30, updatedStats.WeeklyScore);
@@ -207,7 +207,7 @@ END", conn);
                 WeeklyScore = 8
             };
 
-            bool updated = _repo.Update(stats);
+            bool updated = repo.Update(stats);
 
             Assert.False(updated);
         }
@@ -222,18 +222,18 @@ END", conn);
                 WeeklyScore = 15
             };
 
-            int id = _repo.Insert(stats);
+            int id = repo.Insert(stats);
 
-            bool deleted = _repo.Delete(id);
+            bool deleted = repo.Delete(id);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(id));
+            Assert.Null(repo.GetById(id));
         }
 
         [Fact]
         public void Delete_NonExistingStats_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999999);
+            bool deleted = repo.Delete(999999);
 
             Assert.False(deleted);
         }

@@ -75,8 +75,6 @@ namespace MovieApp.Tests.Unit.Models
             Assert.Same(user, review.User);
             Assert.Same(movie, review.Movie);
         }
-
-
         [Fact]
         public void UserDisplayId_WhenUserIsSet_ReturnsUserId()
         {

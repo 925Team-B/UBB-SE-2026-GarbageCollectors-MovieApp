@@ -7,18 +7,18 @@ public class ViewModelBaseTests
 {
     private class TestViewModel : ViewModelBase
     {
-        private string _name = string.Empty;
+        private string name = string.Empty;
         public string Name
         {
-            get => _name;
-            set => SetProperty(ref _name, value);
+            get => name;
+            set => SetProperty(ref name, value);
         }
 
-        private int _count;
+        private int count;
         public int Count
         {
-            get => _count;
-            set => SetProperty(ref _count, value);
+            get => count;
+            set => SetProperty(ref count, value);
         }
     }
 
@@ -85,8 +85,8 @@ public class ViewModelBaseTests
     {
         var vm = new TestViewModel { Name = "Dana" };
 
-        vm.Name = "Dana"; 
+        vm.Name = "Dana";
 
-        Assert.Equal("Dana", vm.Name); 
+        Assert.Equal("Dana", vm.Name);
     }
 }

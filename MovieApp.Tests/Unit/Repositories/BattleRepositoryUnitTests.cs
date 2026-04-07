@@ -7,11 +7,11 @@ namespace MovieApp.Tests.Unit.Repositories
 {
     public class BattleRepositoryUnitTests
     {
-        private readonly BattleRepository _repo;
+        private readonly BattleRepository repo;
 
         public BattleRepositoryUnitTests()
         {
-            _repo = new BattleRepository("fake-connection-string");
+            repo = new BattleRepository("fake-connection-string");
         }
 
         [Fact]
@@ -28,7 +28,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Status = "Pending"
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(battle));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(battle));
             Assert.Equal("Battle.FirstMovie is required for insert.", ex.Message);
         }
 
@@ -46,7 +46,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Status = "Pending"
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(battle));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(battle));
             Assert.Equal("Battle.SecondMovie is required for insert.", ex.Message);
         }
 
@@ -65,7 +65,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Status = "Active"
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(battle));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(battle));
             Assert.Equal("Battle.FirstMovie is required for update.", ex.Message);
         }
 
@@ -84,7 +84,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 Status = "Active"
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(battle));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(battle));
             Assert.Equal("Battle.SecondMovie is required for update.", ex.Message);
         }
     }

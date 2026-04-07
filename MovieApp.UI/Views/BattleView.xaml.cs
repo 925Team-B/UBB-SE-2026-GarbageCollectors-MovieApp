@@ -11,7 +11,7 @@ namespace MovieApp.UI.Views;
 public sealed partial class BattleView : UserControl
 {
     /// <summary>Gets the ViewModel.</summary>
-    public BattleViewModel? ViewModel => DataContext as BattleViewModel;
+    public BattleViewModel? ViewModel => this.DataContext as BattleViewModel;
 
     /// <summary>
     /// Initializes a new instance of <see cref="BattleView"/>.
@@ -19,7 +19,7 @@ public sealed partial class BattleView : UserControl
     public BattleView()
     {
         this.InitializeComponent();
-        this.DataContextChanged += (s, e) => Bindings.Update();
+        this.DataContextChanged += (s, e) => this.Bindings.Update();
     }
 
     /// <summary>
@@ -27,9 +27,9 @@ public sealed partial class BattleView : UserControl
     /// </summary>
     private void BetMovieSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (BetMovieSelector.SelectedItem is Movie movie && ViewModel != null)
+        if (this.BetMovieSelector.SelectedItem is Movie movie && this.ViewModel != null)
         {
-            ViewModel.SelectedBetMovieId = movie.MovieId;
+            this.ViewModel.SelectedBetMovieId = movie.MovieId;
         }
     }
 }

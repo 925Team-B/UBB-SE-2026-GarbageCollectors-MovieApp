@@ -54,8 +54,6 @@ namespace MovieApp.Tests.Unit.Models
             Assert.Same(movie, comment.Movie);
             Assert.Same(parent, comment.ParentComment);
         }
-
-
         [Fact]
         public void AuthorDisplayId_WhenAuthorIsSet_ReturnsAuthorUserId()
         {

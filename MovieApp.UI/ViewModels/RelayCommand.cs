@@ -8,8 +8,8 @@ namespace MovieApp.UI.ViewModels;
 /// </summary>
 public class RelayCommand : ICommand
 {
-    private readonly Action<object?> _execute;
-    private readonly Func<object?, bool>? _canExecute;
+    private readonly Action<object?> execute;
+    private readonly Func<object?, bool>? canExecute;
 
     /// <summary>
     /// Initializes a new instance of <see cref="RelayCommand"/>.
@@ -18,18 +18,18 @@ public class RelayCommand : ICommand
     /// <param name="canExecute">Optional predicate for command availability.</param>
     public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
     {
-        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-        _canExecute = canExecute;
+        this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        this.canExecute = canExecute;
     }
 
     /// <summary>Occurs when CanExecute state changes.</summary>
     public event EventHandler? CanExecuteChanged;
 
     /// <summary>Determines whether the command can execute.</summary>
-    public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
+    public bool CanExecute(object? parameter) => canExecute?.Invoke(parameter) ?? true;
 
     /// <summary>Executes the command action.</summary>
-    public void Execute(object? parameter) => _execute(parameter);
+    public void Execute(object? parameter) => execute(parameter);
 
     /// <summary>Raises CanExecuteChanged to re-evaluate command state.</summary>
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
@@ -40,9 +40,9 @@ public class RelayCommand : ICommand
 /// </summary>
 public class AsyncRelayCommand : ICommand
 {
-    private readonly Func<object?, Task> _execute;
-    private readonly Func<object?, bool>? _canExecute;
-    private bool _isExecuting;
+    private readonly Func<object?, Task> execute;
+    private readonly Func<object?, bool>? canExecute;
+    private bool isExecuting;
 
     /// <summary>
     /// Initializes a new instance of <see cref="AsyncRelayCommand"/>.
@@ -51,27 +51,27 @@ public class AsyncRelayCommand : ICommand
     /// <param name="canExecute">Optional predicate for command availability.</param>
     public AsyncRelayCommand(Func<object?, Task> execute, Func<object?, bool>? canExecute = null)
     {
-        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-        _canExecute = canExecute;
+        this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        this.canExecute = canExecute;
     }
 
     /// <summary>Occurs when CanExecute state changes.</summary>
     public event EventHandler? CanExecuteChanged;
 
     /// <summary>Determines whether the command can execute.</summary>
-    public bool CanExecute(object? parameter) => !_isExecuting && (_canExecute?.Invoke(parameter) ?? true);
+    public bool CanExecute(object? parameter) => !isExecuting && (canExecute?.Invoke(parameter) ?? true);
 
     /// <summary>Executes the async command action.</summary>
     public async void Execute(object? parameter)
     {
-        if (_isExecuting) return;
+        if (isExecuting) return;
 
-        _isExecuting = true;
+        isExecuting = true;
         RaiseCanExecuteChanged();
 
         try
         {
-            await _execute(parameter);
+            await execute(parameter);
         }
         catch (Exception ex)
         {
@@ -79,7 +79,7 @@ public class AsyncRelayCommand : ICommand
         }
         finally
         {
-            _isExecuting = false;
+            isExecuting = false;
             RaiseCanExecuteChanged();
         }
     }

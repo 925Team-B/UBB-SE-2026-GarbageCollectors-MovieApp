@@ -1,8 +1,8 @@
-﻿using Moq;
-using Xunit;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using Moq;
+using Xunit;
 using MovieApp.UI.ViewModels;
 using MovieApp.Core.Models;
 using MovieApp.Core.Interfaces;
@@ -12,12 +12,12 @@ namespace MovieApp.Tests.Unit.ViewModels
 {
     public class MovieDetailViewModelTests
     {
-        private readonly Mock<IReviewService> _mockReviewService;
-        private readonly Mock<ICommentService> _mockCommentService;
-        private readonly ExternalReviewService _externalReviewService;
+        private readonly Mock<IReviewService> mockReviewService;
+        private readonly Mock<ICommentService> mockCommentService;
+        private readonly ExternalReviewService externalReviewService;
         private const int CurrentUserId = 1;
 
-        private readonly Movie _testMovie = new()
+        private readonly Movie testMovie = new ()
         {
             MovieId = 42,
             Title = "Inception",
@@ -26,31 +26,28 @@ namespace MovieApp.Tests.Unit.ViewModels
 
         public MovieDetailViewModelTests()
         {
-            _mockReviewService = new Mock<IReviewService>();
-            _mockCommentService = new Mock<ICommentService>();
-            _externalReviewService = new ExternalReviewService(new List<IExternalReviewProvider>());
+            mockReviewService = new Mock<IReviewService>();
+            mockCommentService = new Mock<ICommentService>();
+            externalReviewService = new ExternalReviewService(new List<IExternalReviewProvider>());
 
-            _mockReviewService.Setup(s => s.GetReviewsForMovie(It.IsAny<int>()))
+            mockReviewService.Setup(s => s.GetReviewsForMovie(It.IsAny<int>()))
                 .ReturnsAsync(new List<Review>());
-            _mockReviewService.Setup(s => s.GetAverageRating(It.IsAny<int>()))
+            mockReviewService.Setup(s => s.GetAverageRating(It.IsAny<int>()))
                 .ReturnsAsync(0.0);
-            _mockCommentService.Setup(s => s.GetCommentsForMovie(It.IsAny<int>()))
+            mockCommentService.Setup(s => s.GetCommentsForMovie(It.IsAny<int>()))
                 .ReturnsAsync(new List<Comment>());
         }
 
         private MovieDetailViewModel CreateViewModel() =>
-            new(_mockReviewService.Object, _mockCommentService.Object, _externalReviewService, CurrentUserId);
-
-
-
+            new (mockReviewService.Object, mockCommentService.Object, externalReviewService, CurrentUserId);
         [Fact]
         public async Task LoadMovieAsync_WhenCalled_SetsMovieProperty()
         {
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
-            Assert.Equal(_testMovie, vm.Movie);
+            Assert.Equal(testMovie, vm.Movie);
         }
 
         [Fact]
@@ -58,9 +55,9 @@ namespace MovieApp.Tests.Unit.ViewModels
         {
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
-            _mockReviewService.Verify(s => s.GetReviewsForMovie(_testMovie.MovieId), Times.Once);
+            mockReviewService.Verify(s => s.GetReviewsForMovie(testMovie.MovieId), Times.Once);
         }
 
         [Fact]
@@ -68,18 +65,18 @@ namespace MovieApp.Tests.Unit.ViewModels
         {
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
-            _mockReviewService.Verify(s => s.GetAverageRating(_testMovie.MovieId), Times.Once);
+            mockReviewService.Verify(s => s.GetAverageRating(testMovie.MovieId), Times.Once);
         }
 
         [Fact]
         public async Task LoadMovieAsync_WhenCalled_SetsAverageRating()
         {
-            _mockReviewService.Setup(s => s.GetAverageRating(_testMovie.MovieId)).ReturnsAsync(8.5);
+            mockReviewService.Setup(s => s.GetAverageRating(testMovie.MovieId)).ReturnsAsync(8.5);
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
             Assert.Equal(8.5, vm.AverageRating);
         }
@@ -87,15 +84,15 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task LoadMovieAsync_WhenCalled_PopulatesReviewsCollection()
         {
-            _mockReviewService.Setup(s => s.GetReviewsForMovie(_testMovie.MovieId))
+            mockReviewService.Setup(s => s.GetReviewsForMovie(testMovie.MovieId))
                 .ReturnsAsync(new List<Review>
                 {
-                    new() { ReviewId = 1, User = new User { UserId = 99 } },
-                    new() { ReviewId = 2, User = new User { UserId = 98 } }
+                    new () { ReviewId = 1, User = new User { UserId = 99 } },
+                    new () { ReviewId = 2, User = new User { UserId = 98 } }
                 });
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
             Assert.Equal(2, vm.Reviews.Count);
         }
@@ -103,14 +100,14 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task LoadMovieAsync_WhenCurrentUserHasReview_SetsHasUserReviewTrue()
         {
-            _mockReviewService.Setup(s => s.GetReviewsForMovie(_testMovie.MovieId))
+            mockReviewService.Setup(s => s.GetReviewsForMovie(testMovie.MovieId))
                 .ReturnsAsync(new List<Review>
                 {
-                    new() { ReviewId = 1, User = new User { UserId = CurrentUserId } }
+                    new () { ReviewId = 1, User = new User { UserId = CurrentUserId } }
                 });
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
             Assert.True(vm.HasUserReview);
         }
@@ -118,14 +115,17 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task LoadMovieAsync_WhenCurrentUserHasNoReview_SetsHasUserReviewFalse()
         {
-            _mockReviewService.Setup(s => s.GetReviewsForMovie(_testMovie.MovieId))
+            mockReviewService.Setup(s => s.GetReviewsForMovie(testMovie.MovieId))
                 .ReturnsAsync(new List<Review>
                 {
-                    new() { ReviewId = 1, User = new User { UserId = 999 } } 
+                    new ()
+                    {
+                        ReviewId = 1, User = new User { UserId = 999 }
+                    }
                 });
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
             Assert.False(vm.HasUserReview);
         }
@@ -137,7 +137,7 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.StatusMessage = "stale message";
             vm.ShowExtraReviewForm = true;
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
             Assert.Equal(string.Empty, vm.StatusMessage);
             Assert.False(vm.ShowExtraReviewForm);
@@ -148,13 +148,10 @@ namespace MovieApp.Tests.Unit.ViewModels
         {
             MovieDetailViewModel vm = CreateViewModel();
 
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
-            _mockCommentService.Verify(s => s.GetCommentsForMovie(_testMovie.MovieId), Times.Once);
+            mockCommentService.Verify(s => s.GetCommentsForMovie(testMovie.MovieId), Times.Once);
         }
-
-
-
         [Fact]
         public async Task SubmitReviewCommand_WhenNoMovieLoaded_DoesNotCallAddReview()
         {
@@ -163,36 +160,36 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.SubmitReviewCommand.Execute(null);
             await Task.Delay(50);
 
-            _mockReviewService.Verify(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
+            mockReviewService.Verify(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
                 It.IsAny<float>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task SubmitReviewCommand_WhenMovieLoaded_CallsAddReviewService()
         {
-            _mockReviewService.Setup(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
+            mockReviewService.Setup(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
                 It.IsAny<float>(), It.IsAny<string>())).Returns(Task.FromResult(new Review()));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
             vm.NewReviewRating = 4.5f;
             vm.NewReviewContent = "Excellent film!";
             vm.SubmitReviewCommand.Execute(null);
             await Task.Delay(100);
 
-            _mockReviewService.Verify(s => s.AddReview(CurrentUserId, _testMovie.MovieId, 4.5f, "Excellent film!"),
+            mockReviewService.Verify(s => s.AddReview(CurrentUserId, testMovie.MovieId, 4.5f, "Excellent film!"),
                 Times.Once);
         }
 
         [Fact]
         public async Task SubmitReviewCommand_WhenSucceeds_ClearsInputFieldsAndSetsSuccessMessage()
         {
-            _mockReviewService.Setup(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
+            mockReviewService.Setup(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
                 It.IsAny<float>(), It.IsAny<string>())).Returns(Task.FromResult(new Review()));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.NewReviewRating = 4.5f;
             vm.NewReviewContent = "Excellent film!";
 
@@ -200,7 +197,9 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(vm.StatusMessage) && !string.IsNullOrEmpty(vm.StatusMessage))
+                {
                     capturedMessage = vm.StatusMessage;
+                }
             };
 
             vm.SubmitReviewCommand.Execute(null);
@@ -214,12 +213,12 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task SubmitReviewCommand_WhenServiceThrowsInvalidOperation_SetsStatusMessage()
         {
-            _mockReviewService.Setup(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
+            mockReviewService.Setup(s => s.AddReview(It.IsAny<int>(), It.IsAny<int>(),
                 It.IsAny<float>(), It.IsAny<string>()))
                 .ThrowsAsync(new InvalidOperationException("Already reviewed"));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.NewReviewRating = 4.5f;
             vm.NewReviewContent = "Great!";
             vm.SubmitReviewCommand.Execute(null);
@@ -227,9 +226,6 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             Assert.Equal("Already reviewed", vm.StatusMessage);
         }
-
-
-
         [Fact]
         public void ShowExtraReviewFormCommand_WhenExecuted_SetsShowExtraReviewFormTrue()
         {
@@ -239,14 +235,11 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             Assert.True(vm.ShowExtraReviewForm);
         }
-
-
-
         [Fact]
         public async Task SubmitExtraReviewCommand_WhenUserHasNoRegularReview_SetsStatusMessage()
         {
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie); 
+            await vm.LoadMovieAsync(testMovie);
 
             vm.SubmitExtraReviewCommand.Execute(null);
             await Task.Delay(100);
@@ -258,24 +251,26 @@ namespace MovieApp.Tests.Unit.ViewModels
         public async Task SubmitExtraReviewCommand_WhenValid_CallsSubmitExtraReviewService()
         {
             Review userReview = new Review { ReviewId = 7, User = new User { UserId = CurrentUserId } };
-            _mockReviewService.Setup(s => s.GetReviewsForMovie(_testMovie.MovieId))
+            mockReviewService.Setup(s => s.GetReviewsForMovie(testMovie.MovieId))
                 .ReturnsAsync(new List<Review> { userReview });
-            _mockReviewService.Setup(s => s.SubmitExtraReview(It.IsAny<int>(), It.IsAny<int>(),
+            mockReviewService.Setup(s => s.SubmitExtraReview(It.IsAny<int>(), It.IsAny<int>(),
                 It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(),
                 It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(),
                 It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
-            vm.CgiRating = 4; vm.ActingRating = 5;
-            vm.PlotRating = 3; vm.SoundRating = 4;
+            vm.CgiRating = 4;
+            vm.ActingRating = 5;
+            vm.PlotRating = 3;
+            vm.SoundRating = 4;
             vm.CinRating = 5;
             vm.SubmitExtraReviewCommand.Execute(null);
             await Task.Delay(100);
 
-            _mockReviewService.Verify(s => s.SubmitExtraReview(userReview.ReviewId,
+            mockReviewService.Verify(s => s.SubmitExtraReview(userReview.ReviewId,
                 It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(),
                 It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(),
                 It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
@@ -285,23 +280,25 @@ namespace MovieApp.Tests.Unit.ViewModels
         public async Task SubmitExtraReviewCommand_WhenSucceeds_HidesExtraFormAndSetsSuccessMessage()
         {
             Review userReview = new Review { ReviewId = 7, User = new User { UserId = CurrentUserId } };
-            _mockReviewService.Setup(s => s.GetReviewsForMovie(_testMovie.MovieId))
+            mockReviewService.Setup(s => s.GetReviewsForMovie(testMovie.MovieId))
                 .ReturnsAsync(new List<Review> { userReview });
-            _mockReviewService.Setup(s => s.SubmitExtraReview(It.IsAny<int>(), It.IsAny<int>(),
+            mockReviewService.Setup(s => s.SubmitExtraReview(It.IsAny<int>(), It.IsAny<int>(),
                 It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(),
                 It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>(),
                 It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.ShowExtraReviewForm = true;
 
             string? capturedMessage = null;
             vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(vm.StatusMessage) && !string.IsNullOrEmpty(vm.StatusMessage))
+                {
                     capturedMessage = vm.StatusMessage;
+                }
             };
 
             vm.SubmitExtraReviewCommand.Execute(null);
@@ -310,9 +307,6 @@ namespace MovieApp.Tests.Unit.ViewModels
             Assert.False(vm.ShowExtraReviewForm);
             Assert.Equal("Extra review submitted successfully!", capturedMessage);
         }
-
-
-
         [Fact]
         public async Task AddCommentCommand_WhenNoMovieLoaded_DoesNotCallAddComment()
         {
@@ -322,33 +316,33 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.AddCommentCommand.Execute(null);
             await Task.Delay(50);
 
-            _mockCommentService.Verify(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
+            mockCommentService.Verify(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task AddCommentCommand_WhenValid_CallsAddCommentService()
         {
-            _mockCommentService.Setup(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+            mockCommentService.Setup(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(new Comment()));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.NewCommentContent = "Amazing cinematography!";
             vm.AddCommentCommand.Execute(null);
             await Task.Delay(100);
 
-            _mockCommentService.Verify(
-                s => s.AddComment(CurrentUserId, _testMovie.MovieId, "Amazing cinematography!"), Times.Once);
+            mockCommentService.Verify(
+                s => s.AddComment(CurrentUserId, testMovie.MovieId, "Amazing cinematography!"), Times.Once);
         }
 
         [Fact]
         public async Task AddCommentCommand_WhenSucceeds_ClearsNewCommentContent()
         {
-            _mockCommentService.Setup(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+            mockCommentService.Setup(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(new Comment()));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.NewCommentContent = "Amazing!";
             vm.AddCommentCommand.Execute(null);
             await Task.Delay(100);
@@ -359,47 +353,46 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task AddCommentCommand_WhenServiceThrowsInvalidOperation_SetsStatusMessage()
         {
-            _mockCommentService.Setup(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+            mockCommentService.Setup(s => s.AddComment(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
                 .ThrowsAsync(new InvalidOperationException("Rate limited"));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.NewCommentContent = "A comment";
             vm.AddCommentCommand.Execute(null);
             await Task.Delay(100);
 
             Assert.Equal("Rate limited", vm.StatusMessage);
         }
-
-
-
         [Fact]
         public async Task DeleteReviewCommand_WhenMovieLoaded_CallsDeleteReviewService()
         {
-            _mockReviewService.Setup(s => s.DeleteReview(It.IsAny<int>())).Returns(Task.CompletedTask);
+            mockReviewService.Setup(s => s.DeleteReview(It.IsAny<int>())).Returns(Task.CompletedTask);
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
 
             vm.DeleteReviewCommand.Execute(5);
             await Task.Delay(100);
 
-            _mockReviewService.Verify(s => s.DeleteReview(5), Times.Once);
+            mockReviewService.Verify(s => s.DeleteReview(5), Times.Once);
         }
 
     [Fact]
     public async Task DeleteReviewCommand_WhenSucceeds_SetsDeletedStatusMessage()
     {
-        _mockReviewService.Setup(s => s.DeleteReview(It.IsAny<int>())).Returns(Task.CompletedTask);
+        mockReviewService.Setup(s => s.DeleteReview(It.IsAny<int>())).Returns(Task.CompletedTask);
 
         MovieDetailViewModel vm = CreateViewModel();
-        await vm.LoadMovieAsync(_testMovie);
+        await vm.LoadMovieAsync(testMovie);
 
         string? capturedMessage = null;
         vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(vm.StatusMessage) && vm.StatusMessage != string.Empty)
+            {
                 capturedMessage = vm.StatusMessage;
+            }
         };
 
         vm.DeleteReviewCommand.Execute(5);
@@ -411,18 +404,16 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task DeleteReviewCommand_WhenServiceThrowsInvalidOperation_SetsStatusMessage()
         {
-            _mockReviewService.Setup(s => s.DeleteReview(It.IsAny<int>()))
+            mockReviewService.Setup(s => s.DeleteReview(It.IsAny<int>()))
                 .ThrowsAsync(new InvalidOperationException("Not found"));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.DeleteReviewCommand.Execute(5);
             await Task.Delay(100);
 
             Assert.Equal("Not found", vm.StatusMessage);
         }
-
-
         [Fact]
         public void BackCommand_WhenExecuted_RaisesNavigateBackEvent()
         {
@@ -434,8 +425,6 @@ namespace MovieApp.Tests.Unit.ViewModels
 
             Assert.True(raised);
         }
-
-
         [Fact]
         public void StartReplyCommand_WhenCommentIdPassed_SetsReplyToCommentId()
         {
@@ -462,27 +451,27 @@ namespace MovieApp.Tests.Unit.ViewModels
         [Fact]
         public async Task SubmitReplyCommand_WhenValid_CallsAddReplyService()
         {
-            _mockCommentService.Setup(s => s.AddReply(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+            mockCommentService.Setup(s => s.AddReply(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(new Comment()));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.ReplyToCommentId = 7;
             vm.ReplyContent = "Great point!";
             vm.SubmitReplyCommand.Execute(null);
             await Task.Delay(100);
 
-            _mockCommentService.Verify(s => s.AddReply(CurrentUserId, 7, "Great point!"), Times.Once);
+            mockCommentService.Verify(s => s.AddReply(CurrentUserId, 7, "Great point!"), Times.Once);
         }
 
         [Fact]
         public async Task SubmitReplyCommand_WhenSucceeds_ClearsReplyFields()
         {
-            _mockCommentService.Setup(s => s.AddReply(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+            mockCommentService.Setup(s => s.AddReply(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(new Comment()));
 
             MovieDetailViewModel vm = CreateViewModel();
-            await vm.LoadMovieAsync(_testMovie);
+            await vm.LoadMovieAsync(testMovie);
             vm.ReplyToCommentId = 7;
             vm.ReplyContent = "Agreed!";
             vm.SubmitReplyCommand.Execute(null);
@@ -502,7 +491,7 @@ namespace MovieApp.Tests.Unit.ViewModels
             vm.SubmitReplyCommand.Execute(null);
             await Task.Delay(50);
 
-            _mockCommentService.Verify(
+            mockCommentService.Verify(
                 s => s.AddReply(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
         }
     }

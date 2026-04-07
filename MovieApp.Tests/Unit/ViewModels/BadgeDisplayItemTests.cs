@@ -8,8 +8,6 @@ public class BadgeDisplayItemTests
 {
     private static Badge MakeBadge(string name, int criteriaValue = 10) =>
         new Badge { Name = name, CriteriaValue = criteriaValue };
-
-
     [Fact]
     public void Badge_IsSetFromConstructor()
     {
@@ -44,8 +42,6 @@ public class BadgeDisplayItemTests
 
         Assert.Equal(42, item.CriteriaValue);
     }
-
-
     [Fact]
     public void Icon_IsMedalEmoji_WhenUnlocked()
     {
@@ -61,8 +57,6 @@ public class BadgeDisplayItemTests
 
         Assert.Equal("🔒", item.Icon);
     }
-
-
     [Fact]
     public void CriteriaDescription_TheSnob_MentionsExtraReviews()
     {

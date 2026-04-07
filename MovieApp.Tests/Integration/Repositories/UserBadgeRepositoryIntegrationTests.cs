@@ -1,37 +1,37 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class UserBadgeRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly UserBadgeRepository _repo;
-        private readonly BadgeRepository _badgeRepo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly UserBadgeRepository repo;
+        private readonly BadgeRepository badgeRepo;
 
         public UserBadgeRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_UserBadge_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_UserBadge_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new UserBadgeRepository(_connectionString);
-            _badgeRepo = new BadgeRepository(_connectionString);
+            repo = new UserBadgeRepository(connectionString);
+            badgeRepo = new BadgeRepository(connectionString);
 
             ClearTables();
         }
 
         private void ClearTables()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM UserBadge", conn).ExecuteNonQuery();
@@ -46,7 +46,7 @@ namespace MovieApp.Tests.Integration.Repositories
                 CriteriaValue = criteriaValue
             };
 
-            int id = _badgeRepo.Insert(badge);
+            int id = badgeRepo.Insert(badge);
             badge.BadgeId = id;
             return badge;
         }
@@ -65,10 +65,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -85,11 +85,11 @@ END", conn);
                 Badge = badge
             };
 
-            bool inserted = _repo.Insert(userBadge);
+            bool inserted = repo.Insert(userBadge);
 
             Assert.True(inserted);
 
-            var result = _repo.GetById(1, badge.BadgeId);
+            var result = repo.GetById(1, badge.BadgeId);
             Assert.NotNull(result);
             Assert.Equal(1, result!.User!.UserId);
             Assert.Equal(badge.BadgeId, result.Badge!.BadgeId);
@@ -106,7 +106,7 @@ END", conn);
                 Badge = badge
             };
 
-            Assert.Throws<InvalidOperationException>(() => _repo.Insert(userBadge));
+            Assert.Throws<InvalidOperationException>(() => repo.Insert(userBadge));
         }
 
         [Fact]
@@ -115,19 +115,19 @@ END", conn);
             var badge1 = CreateBadge("Badge 1", 5);
             var badge2 = CreateBadge("Badge 2", 15);
 
-            _repo.Insert(new UserBadge
+            repo.Insert(new UserBadge
             {
                 User = ExistingUser(1),
                 Badge = badge1
             });
 
-            _repo.Insert(new UserBadge
+            repo.Insert(new UserBadge
             {
                 User = ExistingUser(2),
                 Badge = badge2
             });
 
-            var userBadges = _repo.GetAll();
+            var userBadges = repo.GetAll();
 
             Assert.Equal(2, userBadges.Count);
         }
@@ -137,13 +137,13 @@ END", conn);
         {
             var badge = CreateBadge("Find Badge", 20);
 
-            _repo.Insert(new UserBadge
+            repo.Insert(new UserBadge
             {
                 User = ExistingUser(1),
                 Badge = badge
             });
 
-            var result = _repo.GetById(1, badge.BadgeId);
+            var result = repo.GetById(1, badge.BadgeId);
 
             Assert.NotNull(result);
             Assert.Equal(1, result!.User!.UserId);
@@ -153,7 +153,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingUserBadge_ReturnsNull()
         {
-            var result = _repo.GetById(999, 999);
+            var result = repo.GetById(999, 999);
 
             Assert.Null(result);
         }
@@ -169,9 +169,9 @@ END", conn);
                 Badge = badge
             };
 
-            _repo.Insert(userBadge);
+            repo.Insert(userBadge);
 
-            bool updated = _repo.Update(userBadge);
+            bool updated = repo.Update(userBadge);
 
             Assert.True(updated);
         }
@@ -187,7 +187,7 @@ END", conn);
                 Badge = badge
             };
 
-            bool updated = _repo.Update(userBadge);
+            bool updated = repo.Update(userBadge);
 
             Assert.False(updated);
         }
@@ -197,22 +197,22 @@ END", conn);
         {
             var badge = CreateBadge("Delete Badge", 50);
 
-            _repo.Insert(new UserBadge
+            repo.Insert(new UserBadge
             {
                 User = ExistingUser(1),
                 Badge = badge
             });
 
-            bool deleted = _repo.Delete(1, badge.BadgeId);
+            bool deleted = repo.Delete(1, badge.BadgeId);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(1, badge.BadgeId));
+            Assert.Null(repo.GetById(1, badge.BadgeId));
         }
 
         [Fact]
         public void Delete_NonExistingUserBadge_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999, 999);
+            bool deleted = repo.Delete(999, 999);
 
             Assert.False(deleted);
         }

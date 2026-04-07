@@ -8,96 +8,104 @@ namespace Tests.Unit.Services;
 
 internal class FakeReviewRepository : ReviewRepository
 {
-    private readonly List<Review> _store = new();
-    private int _nextId = 1;
+    private readonly List<Review> store = new ();
+    private int nextId = 1;
 
     public FakeReviewRepository(params Review[] seed) : base(string.Empty)
     {
         foreach (var r in seed)
         {
-            r.ReviewId = _nextId++;
-            _store.Add(r);
+            r.ReviewId = nextId++;
+            store.Add(r);
         }
     }
 
-    public override List<Review> GetAll() => _store.ToList();
+    public override List<Review> GetAll() => store.ToList();
 
-    public override Review? GetById(int id) => _store.FirstOrDefault(r => r.ReviewId == id);
+    public override Review? GetById(int id) => store.FirstOrDefault(r => r.ReviewId == id);
 
     public override int Insert(Review review)
     {
-        review.ReviewId = _nextId++;
-        _store.Add(review);
+        review.ReviewId = nextId++;
+        store.Add(review);
         return review.ReviewId;
     }
 
     public override bool Update(Review review)
     {
-        var index = _store.FindIndex(r => r.ReviewId == review.ReviewId);
-        if (index < 0) return false;
-        _store[index] = review;
+        var index = store.FindIndex(r => r.ReviewId == review.ReviewId);
+        if (index < 0)
+        {
+            return false;
+        }
+
+        store[index] = review;
         return true;
     }
 
     public override bool Delete(int id)
     {
-        var review = _store.FirstOrDefault(r => r.ReviewId == id);
-        if (review is null) return false;
-        _store.Remove(review);
+        var review = store.FirstOrDefault(r => r.ReviewId == id);
+        if (review is null)
+        {
+            return false;
+        }
+
+        store.Remove(review);
         return true;
     }
 }
 
 internal class FakeMovieRepositoryForReview : MovieRepository
 {
-    private readonly Dictionary<int, Movie> _store;
+    private readonly Dictionary<int, Movie> store;
 
     public FakeMovieRepositoryForReview(params Movie[] movies) : base(string.Empty)
     {
-        _store = movies.ToDictionary(m => m.MovieId);
+        store = movies.ToDictionary(m => m.MovieId);
     }
 
     public override Movie? GetById(int id) =>
-        _store.TryGetValue(id, out var m) ? m : null;
+        store.TryGetValue(id, out var m) ? m : null;
 
     public override bool Update(Movie movie)
     {
-        _store[movie.MovieId] = movie;
+        store[movie.MovieId] = movie;
         return true;
     }
 }
 
 internal class FakeUserRepositoryForReview : UserRepository
 {
-    private readonly Dictionary<int, User> _store;
+    private readonly Dictionary<int, User> store;
 
     public FakeUserRepositoryForReview(params User[] users) : base(string.Empty)
     {
-        _store = users.ToDictionary(u => u.UserId);
+        store = users.ToDictionary(u => u.UserId);
     }
 
     public override User? GetById(int id) =>
-        _store.TryGetValue(id, out var u) ? u : null;
+        store.TryGetValue(id, out var u) ? u : null;
 }
 
 internal class FakeBattleRepository : BattleRepository
 {
-    private readonly List<Battle> _store;
+    private readonly List<Battle> store;
 
     public FakeBattleRepository(params Battle[] battles) : base(string.Empty)
     {
-        _store = battles.ToList();
+        store = battles.ToList();
     }
 
-    public override List<Battle> GetAll() => _store.ToList();
+    public override List<Battle> GetAll() => store.ToList();
 }
 
 public class ReviewServiceTests
 {
-    private static User DefaultUser(int id = 1) => new() { UserId = id };
-    private static Movie DefaultMovie(int id = 10) => new() { MovieId = id, Title = "Test Movie", AverageRating = 3.0 };
+    private static User DefaultUser(int id = 1) => new () { UserId = id };
+    private static Movie DefaultMovie(int id = 10) => new () { MovieId = id, Title = "Test Movie", AverageRating = 3.0 };
 
-    private static string ValidContent(int length = 100) => new('x', length);
+    private static string ValidContent(int length = 100) => new ('x', length);
 
     private ReviewService CreateSut(
         FakeReviewRepository? reviewRepo = null,
@@ -123,8 +131,7 @@ public class ReviewServiceTests
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
             new Review { User = user, Movie = movie1, StarRating = 4f, Content = ValidContent() },
-            new Review { User = user, Movie = movie2, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie2, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo, new FakeMovieRepositoryForReview(movie1, movie2));
 
         var result = await sut.GetReviewsForMovie(movie1.MovieId);
@@ -149,8 +156,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 6f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 6f, Content = ValidContent() });
         var sut = CreateSut(repo);
 
         var result = await sut.GetReviewsForMovie(movie.MovieId);
@@ -193,8 +199,7 @@ public class ReviewServiceTests
         var user = DefaultUser();
         var movie = DefaultMovie();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -274,8 +279,7 @@ public class ReviewServiceTests
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
             new Review { User = user, Movie = movie, StarRating = 2f, Content = ValidContent() },
-            new Review { User = DefaultUser(2), Movie = movie, StarRating = 4f, Content = ValidContent() }
-        );
+            new Review { User = DefaultUser(2), Movie = movie, StarRating = 4f, Content = ValidContent() });
         var sut = CreateSut(repo);
 
         var result = await sut.GetAverageRating(movie.MovieId);
@@ -289,13 +293,12 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
 
         await sut.UpdateReview(1, 4.5f, ValidContent(200));
 
-        var updated = repo.GetById(1)!;
+        var updated = repo.GetById(1) !;
         Assert.Equal(4.5f, updated.StarRating);
     }
 
@@ -314,8 +317,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -328,8 +330,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -342,8 +343,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
 
         await sut.DeleteReview(1);
@@ -365,15 +365,14 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
         var longText = ValidContent(600);
         var catText = ValidContent(60);
 
         await sut.SubmitExtraReview(1, 3, catText, 3, catText, 3, catText, 3, catText, 3, catText, longText);
 
-        Assert.True(repo.GetById(1)!.IsExtraReview);
+        Assert.True(repo.GetById(1) !.IsExtraReview);
     }
 
     [Fact]
@@ -382,8 +381,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
         var catText = ValidContent(60);
 
@@ -397,8 +395,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
         var catText = ValidContent(60);
 
@@ -412,8 +409,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
         var longText = ValidContent(600);
 
@@ -427,8 +423,7 @@ public class ReviewServiceTests
         var movie = DefaultMovie();
         var user = DefaultUser();
         var repo = new FakeReviewRepository(
-            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() }
-        );
+            new Review { User = user, Movie = movie, StarRating = 3f, Content = ValidContent() });
         var sut = CreateSut(repo);
         var longText = ValidContent(600);
         var catText = ValidContent(60);

@@ -5,13 +5,11 @@ namespace Tests.Unit.ViewModels;
 
 public class RelayCommandTests
 {
-
     [Fact]
     public void Constructor_ThrowsArgumentNullException_WhenExecuteIsNull()
     {
         Assert.Throws<ArgumentNullException>(() => new RelayCommand(null!));
     }
-
 
     [Fact]
     public void CanExecute_ReturnsTrue_WhenNoPredicateProvided()
@@ -36,7 +34,6 @@ public class RelayCommandTests
 
         Assert.False(command.CanExecute(null));
     }
-
 
     [Fact]
     public void Execute_CallsTheProvidedAction()
@@ -67,7 +64,9 @@ public class RelayCommandTests
         var command = new RelayCommand(_ => wasCalled = true, _ => false);
 
         if (command.CanExecute(null))
+        {
             command.Execute(null);
+        }
 
         Assert.False(wasCalled);
     }
