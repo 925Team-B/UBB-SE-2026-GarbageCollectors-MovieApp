@@ -1,8 +1,11 @@
+using Xunit;
 using Moq;
 using MovieApp.Core.Interfaces;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
 using MovieApp.Core.Services;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace Tests.Integration.Services;
 
