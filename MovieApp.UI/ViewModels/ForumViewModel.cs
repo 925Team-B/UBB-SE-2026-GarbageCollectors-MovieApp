@@ -37,7 +37,9 @@ public class ForumViewModel : ViewModelBase
         this.StartReplyCommand = new RelayCommand(param =>
         {
             if (param is int commentId)
+            {
                 this.ReplyToCommentId = commentId;
+            }
         });
         this.CancelReplyCommand = new RelayCommand(_ =>
         {
@@ -136,10 +138,14 @@ public class ForumViewModel : ViewModelBase
         var movies = await catalogService.GetAllMovies();
         Movies.Clear();
         foreach (var movie in movies)
-            Movies.Add(movie);
+        {
+            this.Movies.Add(movie);
+        }
 
         if (Movies.Count > 0 && SelectedMovieId == 0)
+        {
             this.SelectedMovie = Movies[0];
+        }
     }
 
     /// <summary>
@@ -147,7 +153,10 @@ public class ForumViewModel : ViewModelBase
     /// </summary>
     public async Task LoadCommentsAsync()
     {
-        if (this.SelectedMovieId <= 0) return;
+        if (this.SelectedMovieId <= 0)
+        {
+            return;
+        }
 
         var comments = await this.commentService.GetCommentsForMovie(this.SelectedMovieId);
         this.RebuildCommentTree(comments);

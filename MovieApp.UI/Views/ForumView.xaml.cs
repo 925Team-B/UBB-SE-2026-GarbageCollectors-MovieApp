@@ -20,7 +20,7 @@ public sealed partial class ForumView : UserControl
     public ForumView()
     {
         this.InitializeComponent();
-        this.DataContextChanged += (s, e) => Bindings.Update();
+        this.DataContextChanged += (s, e) => this.Bindings.Update();
     }
 
     /// <summary>

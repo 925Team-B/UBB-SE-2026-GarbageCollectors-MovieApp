@@ -69,7 +69,9 @@ public class MovieDetailViewModel : ViewModelBase
         StartReplyCommand = new RelayCommand(param =>
         {
             if (param is int commentId)
-                ReplyToCommentId = commentId;
+            {
+                this.ReplyToCommentId = commentId;
+            }
         });
         CancelReplyCommand = new RelayCommand(_ =>
         {
@@ -80,7 +82,9 @@ public class MovieDetailViewModel : ViewModelBase
         DeleteReviewCommand = new AsyncRelayCommand(async param =>
         {
             if (param is int reviewId)
+            {
                 await DeleteReviewAsync(reviewId);
+            }
         });
     }
 
@@ -254,7 +258,9 @@ public class MovieDetailViewModel : ViewModelBase
         var reviews = await reviewService.GetReviewsForMovie(movie.MovieId);
         Reviews.Clear();
         foreach (var review in reviews)
+        {
             Reviews.Add(review);
+        }
 
         AverageRating = await reviewService.GetAverageRating(movie.MovieId);
         HasUserReview = reviews.Any(r => r.User?.UserId == currentUserId);
@@ -278,7 +284,9 @@ public class MovieDetailViewModel : ViewModelBase
             var reviews = await externalReviewService.GetExternalReviews(movieTitle, releaseYear);
             ExternalReviews.Clear();
             foreach (var review in reviews)
+            {
                 ExternalReviews.Add(review);
+            }
 
             var (criticScore, audienceScore) = await externalReviewService.GetAggregateScores(movieTitle);
             CriticScore = criticScore;
@@ -288,7 +296,9 @@ public class MovieDetailViewModel : ViewModelBase
             var lexicon = externalReviewService.AnalyseLexicon(reviews);
             LexiconWords.Clear();
             foreach (var (word, count) in lexicon)
+            {
                 LexiconWords.Add($"{word} ({count})");
+            }
         }
         catch
         {
@@ -306,7 +316,10 @@ public class MovieDetailViewModel : ViewModelBase
     /// </summary>
     private async Task SubmitReviewAsync()
     {
-        if (Movie == null) return;
+        if (Movie == null)
+        {
+            return;
+        }
 
         try
         {
@@ -327,7 +340,10 @@ public class MovieDetailViewModel : ViewModelBase
     /// </summary>
     private async Task SubmitExtraReviewAsync()
     {
-        if (Movie == null) return;
+        if (Movie == null)
+        {
+            return;
+        }
 
         var userReview = Reviews.FirstOrDefault(r => r.User?.UserId == currentUserId);
         if (userReview == null)
@@ -357,7 +373,10 @@ public class MovieDetailViewModel : ViewModelBase
     /// </summary>
     private async Task AddCommentAsync()
     {
-        if (Movie == null || string.IsNullOrWhiteSpace(NewCommentContent)) return;
+        if (Movie == null || string.IsNullOrWhiteSpace(NewCommentContent))
+        {
+            return;
+        }
 
         try
         {
@@ -377,7 +396,10 @@ public class MovieDetailViewModel : ViewModelBase
     /// </summary>
     private async Task SubmitReplyAsync()
     {
-        if (Movie == null || ReplyToCommentId <= 0 || string.IsNullOrWhiteSpace(ReplyContent)) return;
+        if (Movie == null || ReplyToCommentId <= 0 || string.IsNullOrWhiteSpace(ReplyContent))
+        {
+            return;
+        }
 
         try
         {
@@ -442,7 +464,10 @@ public class MovieDetailViewModel : ViewModelBase
     /// </summary>
     private async Task DeleteReviewAsync(int reviewId)
     {
-        if (Movie == null) return;
+        if (Movie == null)
+        {
+            return;
+        }
 
         try
         {

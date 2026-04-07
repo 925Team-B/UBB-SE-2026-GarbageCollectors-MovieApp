@@ -13,7 +13,10 @@ public class BoolToVisibilityConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is bool boolValue)
+        {
             return boolValue ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         return Visibility.Collapsed;
     }
 
@@ -33,7 +36,10 @@ public class BoolToVisibilityInverterConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is bool boolValue)
+        {
             return boolValue ? Visibility.Collapsed : Visibility.Visible;
+        }
+
         return Visibility.Visible;
     }
 
@@ -53,7 +59,10 @@ public class IntToVisibilityConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is int intValue)
+        {
             return intValue > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         return Visibility.Collapsed;
     }
 
@@ -73,7 +82,10 @@ public class NullableIntToVisibilityConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is int intValue)
+        {
             return intValue > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         return Visibility.Collapsed;
     }
 
@@ -112,7 +124,10 @@ public class StringNotEmptyToBoolConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is string str)
+        {
             return !string.IsNullOrEmpty(str);
+        }
+
         return false;
     }
 

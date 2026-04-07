@@ -25,7 +25,9 @@ public sealed partial class MovieDetailView : UserControl
     private void ReplyButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button button || button.Tag is not int commentId || ViewModel == null)
+        {
             return;
+        }
 
         ViewModel.StartReplyCommand.Execute(commentId);
         ReplyEditorBorder.Visibility = Visibility.Visible; // The line that was crashing!

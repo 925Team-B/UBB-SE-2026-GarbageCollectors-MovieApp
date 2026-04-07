@@ -45,7 +45,7 @@ public class BattleViewModel : ViewModelBase
     }
 
     /// <summary>Gets the available movies to bet on.</summary>
-    public ObservableCollection<Movie> BetMovieOptions { get; } = new();
+    public ObservableCollection<Movie> BetMovieOptions { get; } = new ();
 
     /// <summary>Gets or sets the active battle.</summary>
     public Battle? ActiveBattle
@@ -136,7 +136,9 @@ public class BattleViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref hasBet, value))
+            {
                 OnPropertyChanged(nameof(CanBet));
+            }
         }
     }
 
@@ -175,7 +177,9 @@ public class BattleViewModel : ViewModelBase
         ShowBetForm = false;
 
         if (settleExpired)
+        {
             await battleService.SettleExpiredBattlesAsync();
+        }
 
         var stats = await pointService.GetUserStats(currentUserId);
         TotalPoints = stats.TotalPoints;
@@ -187,8 +191,15 @@ public class BattleViewModel : ViewModelBase
         if (ActiveBattle != null)
         {
             BetMovieOptions.Clear();
-            if (ActiveBattle.FirstMovie != null) BetMovieOptions.Add(ActiveBattle.FirstMovie);
-            if (ActiveBattle.SecondMovie != null) BetMovieOptions.Add(ActiveBattle.SecondMovie);
+            if (ActiveBattle.FirstMovie != null)
+            {
+                this.BetMovieOptions.Add(ActiveBattle.FirstMovie);
+            }
+
+            if (ActiveBattle.SecondMovie != null)
+            {
+                BetMovieOptions.Add(ActiveBattle.SecondMovie);
+            }
 
             UserBet = await battleService.GetBet(currentUserId, ActiveBattle.BattleId);
             HasBet = UserBet != null;

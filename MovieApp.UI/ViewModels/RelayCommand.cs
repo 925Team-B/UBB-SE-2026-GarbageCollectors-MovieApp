@@ -64,7 +64,10 @@ public class AsyncRelayCommand : ICommand
     /// <summary>Executes the async command action.</summary>
     public async void Execute(object? parameter)
     {
-        if (isExecuting) return;
+        if (isExecuting)
+        {
+            return;
+        }
 
         isExecuting = true;
         RaiseCanExecuteChanged();

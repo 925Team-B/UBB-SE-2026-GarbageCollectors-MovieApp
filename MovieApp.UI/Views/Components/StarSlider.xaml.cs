@@ -1,13 +1,13 @@
+using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using System;
 
 namespace MovieApp.UI.Views.Components
 {
     public sealed partial class StarSlider : UserControl
     {
-        // 1. We create a DependencyProperty so you can bind to this slider in XAML 
+        // 1. We create a DependencyProperty so you can bind to this slider in XAML
         // just like you would with a normal WinUI control (e.g. Value="{x:Bind ...}")
         public static readonly DependencyProperty ValueProperty =
             DependencyProperty.Register("Value", typeof(double), typeof(StarSlider), new PropertyMetadata(0.0, OnValueChanged));
@@ -18,7 +18,7 @@ namespace MovieApp.UI.Views.Components
             set => SetValue(ValueProperty, value);
         }
 
-        private bool _isDragging = false;
+        private bool isDragging = false;
         private const int MaxStars = 5;
 
         public StarSlider()
@@ -41,14 +41,14 @@ namespace MovieApp.UI.Views.Components
         // 3. Pointer Events to handle clicking and dragging
         private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            _isDragging = true;
+            isDragging = true;
             RootGrid.CapturePointer(e.Pointer); // Locks the mouse to this control while dragging
             CalculateHalfStep(e);
         }
 
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
         {
-            if (_isDragging)
+            if (isDragging)
             {
                 CalculateHalfStep(e);
             }
@@ -56,14 +56,17 @@ namespace MovieApp.UI.Views.Components
 
         private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
         {
-            _isDragging = false;
+            isDragging = false;
             RootGrid.ReleasePointerCapture(e.Pointer);
         }
 
         // 4. The Magic Math: Snapping to 0.5 increments
         private void CalculateHalfStep(PointerRoutedEventArgs e)
         {
-            if (RootGrid.ActualWidth == 0) return;
+            if (RootGrid.ActualWidth == 0)
+            {
+                return;
+            }
 
             // Get where the mouse is relative to the left edge
             var point = e.GetCurrentPoint(RootGrid).Position;
@@ -84,7 +87,10 @@ namespace MovieApp.UI.Views.Components
         // 5. Visually update the gold stars
         private void UpdateMaskWidth()
         {
-            if (RootGrid.ActualWidth == 0) return;
+            if (RootGrid.ActualWidth == 0)
+            {
+                return;
+            }
 
             double starWidth = RootGrid.ActualWidth / MaxStars;
 

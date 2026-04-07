@@ -77,10 +77,38 @@ public class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async Task LoadDataAsync()
     {
-        try { await catalogViewModel.LoadMoviesAsync(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Catalog load error] {ex.Message}"); }
-        try { await battleViewModel.LoadBattleAsync(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Battle load error] {ex.Message}"); }
-        try { await forumViewModel.LoadMoviesAsync(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Forum load error] {ex.Message}"); }
-        try { await profileViewModel.LoadProfileAsync(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Profile load error] {ex.Message}"); }
+        try
+        {
+            await catalogViewModel.LoadMoviesAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Catalog load error] {ex.Message}");
+        }
+        try
+        {
+            await battleViewModel.LoadBattleAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Battle load error] {ex.Message}");
+        }
+        try
+        {
+            await forumViewModel.LoadMoviesAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Forum load error] {ex.Message}");
+        }
+        try
+        {
+            await profileViewModel.LoadProfileAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Profile load error] {ex.Message}");
+        }
     }
 
     /// <summary>
