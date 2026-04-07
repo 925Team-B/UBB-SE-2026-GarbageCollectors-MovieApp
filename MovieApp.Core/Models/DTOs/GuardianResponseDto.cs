@@ -12,7 +12,7 @@ public sealed class GuardianApiResponseDto
 public sealed class GuardianResponseDto
 {
     [JsonPropertyName("results")]
-    public List<GuardianResultDto> Results { get; set; } = new();
+    public List<GuardianResultDto> Results { get; set; } = new ();
 }
 
 public sealed class GuardianResultDto

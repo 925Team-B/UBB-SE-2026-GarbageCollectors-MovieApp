@@ -10,10 +10,10 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class PointService : IPointService
 {
-    private readonly IUserStatsRepository _userStatsRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IMovieRepository _movieRepository;
-    private readonly IBadgeService _badgeService;
+    private readonly IUserStatsRepository userStatsRepository;
+    private readonly IUserRepository userRepository;
+    private readonly IMovieRepository movieRepository;
+    private readonly IBadgeService badgeService;
 
     /// <summary>
     /// Initializes a new instance of <see cref="PointService"/>.
@@ -28,10 +28,10 @@ public class PointService : IPointService
         IMovieRepository movieRepository,
         IBadgeService badgeService)
     {
-        _userStatsRepository = userStatsRepository;
-        _userRepository = userRepository;
-        _movieRepository = movieRepository;
-        _badgeService = badgeService;
+        this.userStatsRepository = userStatsRepository;
+        this.userRepository = userRepository;
+        this.movieRepository = movieRepository;
+        this.badgeService = badgeService;
     }
 
     /// <summary>
@@ -41,11 +41,11 @@ public class PointService : IPointService
     /// <returns>The user's stats.</returns>
     public async Task<UserStats> GetUserStats(int userId)
     {
-        var stats = _userStatsRepository.GetByUserId(userId);
+        var stats = userStatsRepository.GetByUserId(userId);
 
         if (stats == null)
         {
-            var user = _userRepository.GetById(userId)
+            var user = userRepository.GetById(userId)
                 ?? throw new InvalidOperationException("User not found.");
 
             stats = new UserStats
@@ -54,7 +54,7 @@ public class PointService : IPointService
                 TotalPoints = 0,
                 WeeklyScore = 0
             };
-            _userStatsRepository.Insert(stats);
+            userStatsRepository.Insert(stats);
         }
 
         return stats;
@@ -70,26 +70,37 @@ public class PointService : IPointService
     public async Task AddPoints(int userId, int movieId, bool isBattleMovie)
     {
         var stats = await GetUserStats(userId);
-        var movie = _movieRepository.GetById(movieId);
-        if (movie == null) return;
+        var movie = movieRepository.GetById(movieId);
+        if (movie == null)
+        {
+            return;
+        }
 
         int pointsToAdd = 0;
 
         if (movie.AverageRating > 3.5)
+        {
             pointsToAdd += 2;
+        }
         else if (movie.AverageRating < 2.0)
+        {
             pointsToAdd += 1;
+        }
 
         if (isBattleMovie)
+        {
             pointsToAdd += 5;
-
+        }
         stats.TotalPoints += pointsToAdd;
-        if (stats.TotalPoints < 0) stats.TotalPoints = 0;
+        if (stats.TotalPoints < 0)
+        {
+            stats.TotalPoints = 0;
+        }
 
-        _userStatsRepository.Update(stats);
+        userStatsRepository.Update(stats);
 
         // Check for new badges
-        await _badgeService.CheckAndAwardBadges(userId);
+        await badgeService.CheckAndAwardBadges(userId);
     }
 
     /// <summary>
@@ -101,8 +112,11 @@ public class PointService : IPointService
     {
         var stats = await GetUserStats(userId);
         stats.TotalPoints -= points;
-        if (stats.TotalPoints < 0) stats.TotalPoints = 0;
-        _userStatsRepository.Update(stats);
+        if (stats.TotalPoints < 0)
+        {
+            stats.TotalPoints = 0;
+        }
+        userStatsRepository.Update(stats);
     }
 
     /// <summary>
@@ -116,11 +130,12 @@ public class PointService : IPointService
         var stats = await GetUserStats(userId);
 
         if (stats.TotalPoints < amount)
+        {
             throw new InvalidOperationException(
                 $"Insufficient points. You have {stats.TotalPoints} but need {amount}.");
-
+        }
         stats.TotalPoints -= amount;
-        _userStatsRepository.Update(stats);
+        userStatsRepository.Update(stats);
     }
 
     /// <summary>
@@ -132,7 +147,7 @@ public class PointService : IPointService
     {
         var stats = await GetUserStats(userId);
         stats.TotalPoints += amount;
-        _userStatsRepository.Update(stats);
+        userStatsRepository.Update(stats);
     }
 
     /// <summary>
@@ -143,6 +158,6 @@ public class PointService : IPointService
     {
         var stats = await GetUserStats(userId);
         stats.WeeklyScore = stats.TotalPoints;
-        _userStatsRepository.Update(stats);
+        userStatsRepository.Update(stats);
     }
 }

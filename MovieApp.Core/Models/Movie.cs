@@ -26,6 +26,7 @@ public class Movie
     public double AverageRating { get; set; }
 
     // Navigation properties
+
     /// <summary>Gets or sets the collection of reviews for this movie.</summary>
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
 

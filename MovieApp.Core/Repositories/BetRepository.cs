@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class BetRepository : IBetRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public BetRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public List<Bet> GetAll()
     {
         var bets = new List<Bet>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT UserId, BattleId, MovieId, Amount
             FROM Bet", connection);
@@ -35,7 +35,7 @@ public class BetRepository : IBetRepository
 
     public Bet? GetById(int userId, int battleId)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT UserId, BattleId, MovieId, Amount
             FROM Bet
@@ -57,13 +57,20 @@ public class BetRepository : IBetRepository
     public bool Insert(Bet bet)
     {
         if (bet.User is null)
+        {
             throw new InvalidOperationException("Bet.User is required for insert.");
+        }
         if (bet.Battle is null)
+        {
             throw new InvalidOperationException("Bet.Battle is required for insert.");
-        if (bet.Movie is null)
-            throw new InvalidOperationException("Bet.Movie is required for insert.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        if (bet.Movie is null)
+        {
+            throw new InvalidOperationException("Bet.Movie is required for insert.");
+        }
+
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO Bet (UserId, BattleId, MovieId, Amount)
             VALUES (@userId, @battleId, @movieId, @amount)", connection);
@@ -80,13 +87,21 @@ public class BetRepository : IBetRepository
     public bool Update(Bet bet)
     {
         if (bet.User is null)
+        {
             throw new InvalidOperationException("Bet.User is required for update.");
-        if (bet.Battle is null)
-            throw new InvalidOperationException("Bet.Battle is required for update.");
-        if (bet.Movie is null)
-            throw new InvalidOperationException("Bet.Movie is required for update.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        if (bet.Battle is null)
+        {
+            throw new InvalidOperationException("Bet.Battle is required for update.");
+        }
+
+        if (bet.Movie is null)
+        {
+            throw new InvalidOperationException("Bet.Movie is required for update.");
+        }
+
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE Bet
             SET MovieId = @movieId,
@@ -104,7 +119,7 @@ public class BetRepository : IBetRepository
 
     public bool Delete(int userId, int battleId)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             DELETE FROM Bet
             WHERE UserId = @userId AND BattleId = @battleId", connection);
@@ -119,7 +134,7 @@ public class BetRepository : IBetRepository
     /// <summary>Deletes all bets for a given battle (used when resetting demo).</summary>
     public void DeleteByBattleId(int battleId)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM Bet WHERE BattleId = @battleId", connection);
         cmd.Parameters.AddWithValue("@battleId", battleId);
         connection.Open();

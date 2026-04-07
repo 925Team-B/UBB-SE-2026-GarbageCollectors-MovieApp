@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class UserStatsRepository : IUserStatsRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public UserStatsRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public virtual List<UserStats> GetAll()
     {
         var stats = new List<UserStats>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT StatsId, UserId, TotalPoints, WeeklyScore
             FROM UserStats", connection);
@@ -35,7 +35,7 @@ public class UserStatsRepository : IUserStatsRepository
 
     public virtual UserStats? GetById(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT StatsId, UserId, TotalPoints, WeeklyScore
             FROM UserStats
@@ -55,7 +55,7 @@ public class UserStatsRepository : IUserStatsRepository
 
     public virtual UserStats? GetByUserId(int userId)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT StatsId, UserId, TotalPoints, WeeklyScore
             FROM UserStats
@@ -76,9 +76,11 @@ public class UserStatsRepository : IUserStatsRepository
     public virtual int Insert(UserStats stats)
     {
         if (stats.User is null)
+        {
             throw new InvalidOperationException("UserStats.User is required for insert.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO UserStats (UserId, TotalPoints, WeeklyScore)
             VALUES (@userId, @totalPoints, @weeklyScore);
@@ -89,7 +91,7 @@ public class UserStatsRepository : IUserStatsRepository
         cmd.Parameters.AddWithValue("@weeklyScore", stats.WeeklyScore);
 
         connection.Open();
-        var id = (int)cmd.ExecuteScalar()!;
+        var id = (int)cmd.ExecuteScalar() !;
         stats.StatsId = id;
         return id;
     }
@@ -97,9 +99,11 @@ public class UserStatsRepository : IUserStatsRepository
     public virtual bool Update(UserStats stats)
     {
         if (stats.User is null)
+        {
             throw new InvalidOperationException("UserStats.User is required for update.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE UserStats
             SET UserId = @userId,
@@ -118,7 +122,7 @@ public class UserStatsRepository : IUserStatsRepository
 
     public virtual bool Delete(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM UserStats WHERE StatsId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);

@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class MovieRepository : IMovieRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public MovieRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public virtual List<Movie> GetAll()
     {
         var movies = new List<Movie>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT MovieId, Title, [Year], PosterUrl, Genre, AverageRating
             FROM Movie", connection);
@@ -43,7 +43,7 @@ public class MovieRepository : IMovieRepository
 
     public virtual Movie? GetById(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT MovieId, Title, [Year], PosterUrl, Genre, AverageRating
             FROM Movie
@@ -71,7 +71,7 @@ public class MovieRepository : IMovieRepository
 
     public virtual int Insert(Movie movie)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO Movie (Title, [Year], PosterUrl, Genre, AverageRating)
             VALUES (@title, @year, @posterUrl, @genre, @averageRating);
@@ -84,14 +84,14 @@ public class MovieRepository : IMovieRepository
         cmd.Parameters.AddWithValue("@averageRating", movie.AverageRating);
 
         connection.Open();
-        var id = (int)cmd.ExecuteScalar()!;
+        var id = (int)cmd.ExecuteScalar() !;
         movie.MovieId = id;
         return id;
     }
 
     public virtual bool Update(Movie movie)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE Movie
             SET Title = @title,
@@ -114,7 +114,7 @@ public class MovieRepository : IMovieRepository
 
     public virtual bool Delete(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM Movie WHERE MovieId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);

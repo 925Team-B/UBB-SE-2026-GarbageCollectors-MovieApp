@@ -9,19 +9,21 @@ namespace MovieApp.Core.Services;
 
 public sealed class NytReviewProvider : IExternalReviewProvider
 {
-    private readonly HttpClient _httpClient;
-    private readonly ICacheService _cacheService;
+    private readonly HttpClient httpClient;
+    private readonly ICacheService cacheService;
 
     public NytReviewProvider(HttpClient httpClient, ICacheService cacheService)
     {
-        _httpClient = httpClient;
-        _cacheService = cacheService;
+        this.httpClient = httpClient;
+        this.cacheService = cacheService;
     }
 
     public async Task<CriticReview?> GetReviewAsync(string movieTitle, int releaseYear)
     {
         if (string.IsNullOrWhiteSpace(movieTitle))
+        {
             return null;
+        }
 
         var (canonicalTitle, canonicalYear, canonicalDirector) = await GetOmdbContextAsync(movieTitle, releaseYear);
 
@@ -32,7 +34,9 @@ public sealed class NytReviewProvider : IExternalReviewProvider
         };
 
         if (!string.IsNullOrWhiteSpace(canonicalDirector))
+        {
             queryPhrases.Add($"\"{canonicalDirector}\"");
+        }
 
         var query = Uri.EscapeDataString(string.Join(' ', queryPhrases));
         var fullFilterQuery = Uri.EscapeDataString("type_of_material:(\"Review\") AND subject:(\"Movies\")");
@@ -48,9 +52,11 @@ public sealed class NytReviewProvider : IExternalReviewProvider
 
         foreach (var (url, cacheKey) in searchVariants)
         {
-            var json = await _cacheService.FetchOrCacheAsync(cacheKey, url, _httpClient);
+            var json = await cacheService.FetchOrCacheAsync(cacheKey, url, httpClient);
             if (string.IsNullOrWhiteSpace(json))
+            {
                 continue;
+            }
 
             try
             {
@@ -62,18 +68,24 @@ public sealed class NytReviewProvider : IExternalReviewProvider
             }
 
             if (dto?.Response?.Docs?.Any() == true)
+            {
                 break;
+            }
         }
 
         if (dto?.Response?.Docs?.Any() != true)
+        {
             return null;
+        }
 
         var doc = dto?.Response?.Docs?
             .Where(d => IsSpecificMovieReview(canonicalTitle, canonicalYear, d.Headline?.Main, d.Snippet))
             .OrderByDescending(d => MatchScore(movieTitle, releaseYear, d.Headline?.Main, d.Snippet))
             .FirstOrDefault();
         if (doc is null)
+        {
             return null;
+        }
 
         return new CriticReview
         {
@@ -90,9 +102,11 @@ public sealed class NytReviewProvider : IExternalReviewProvider
         var omdbUrl = $"https://www.omdbapi.com/?apikey=57b3a80a&t={Uri.EscapeDataString(movieTitle)}&y={releaseYear}";
         var omdbCacheKey = BuildCacheKey("nyt_omdb_context", movieTitle, releaseYear);
 
-        var json = await _cacheService.FetchOrCacheAsync(omdbCacheKey, omdbUrl, _httpClient);
+        var json = await cacheService.FetchOrCacheAsync(omdbCacheKey, omdbUrl, httpClient);
         if (string.IsNullOrWhiteSpace(json))
+        {
             return (movieTitle, releaseYear, string.Empty);
+        }
 
         OmdbContextDto? dto;
         try
@@ -105,8 +119,9 @@ public sealed class NytReviewProvider : IExternalReviewProvider
         }
 
         if (dto is null)
+        {
             return (movieTitle, releaseYear, string.Empty);
-
+        }
         var title = string.IsNullOrWhiteSpace(dto.Title) ? movieTitle : dto.Title;
         var year = int.TryParse(dto.Year, out var parsedYear) ? parsedYear : releaseYear;
         var director = string.IsNullOrWhiteSpace(dto.Director) ? string.Empty : dto.Director.Split(',', StringSplitOptions.TrimEntries)[0];
@@ -127,7 +142,9 @@ public sealed class NytReviewProvider : IExternalReviewProvider
 
         var score = 0;
         if (text.Contains(movieTitle, StringComparison.OrdinalIgnoreCase))
+        {
             score += 10;
+        }
         var tokens = movieTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(t => t.Length > 2)
             .ToList();
@@ -135,7 +152,9 @@ public sealed class NytReviewProvider : IExternalReviewProvider
         score += tokens.Count(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
 
         if (text.Contains(releaseYear.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
             score += 2;
+        }
 
         return score;
     }
@@ -144,8 +163,9 @@ public sealed class NytReviewProvider : IExternalReviewProvider
     {
         var combined = $"{headline} {snippet}";
         if (string.IsNullOrWhiteSpace(combined))
+        {
             return false;
-
+        }
         var hasFullTitle = combined.Contains(movieTitle, StringComparison.OrdinalIgnoreCase);
         var hasYear = combined.Contains(releaseYear.ToString(), StringComparison.OrdinalIgnoreCase);
         var hasReviewCue = combined.Contains("review", StringComparison.OrdinalIgnoreCase)
@@ -159,7 +179,9 @@ public sealed class NytReviewProvider : IExternalReviewProvider
             || combined.Contains("streaming", StringComparison.OrdinalIgnoreCase);
 
         if (looksGenericRoundup && !hasFullTitle)
+        {
             return false;
+        }
 
         var titleTokens = movieTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(t => t.Length > 2)

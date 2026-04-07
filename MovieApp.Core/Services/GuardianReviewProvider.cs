@@ -8,37 +8,46 @@ namespace MovieApp.Core.Services;
 
 public sealed class GuardianReviewProvider : IExternalReviewProvider
 {
-    private readonly HttpClient _httpClient;
-    private readonly ICacheService _cacheService;
+    private readonly HttpClient httpClient;
+    private readonly ICacheService cacheService;
 
     public GuardianReviewProvider(HttpClient httpClient, ICacheService cacheService)
     {
-        _httpClient = httpClient;
-        _cacheService = cacheService;
+        this.httpClient = httpClient;
+        this.cacheService = cacheService;
     }
 
     public async Task<CriticReview?> GetReviewAsync(string movieTitle, int releaseYear)
     {
         if (string.IsNullOrWhiteSpace(movieTitle))
+        {
             return null;
+        }
 
         var query = Uri.EscapeDataString(movieTitle);
         var url = $"https://content.guardianapis.com/search?q={query}&section=film&tag=tone/reviews&show-fields=trailText&page-size=10&from-date={releaseYear}-01-01&to-date={releaseYear + 1}-12-31&api-key=df72ccc6-affe-4757-a0a8-fca2eecd0cc5";
         var cacheKey = BuildCacheKey("guardian", movieTitle, releaseYear);
 
-        var json = await _cacheService.FetchOrCacheAsync(cacheKey, url, _httpClient);
+        var json = await cacheService.FetchOrCacheAsync(cacheKey, url, httpClient);
         if (string.IsNullOrWhiteSpace(json))
+        {
             return null;
+        }
+
         var dto = JsonSerializer.Deserialize<GuardianApiResponseDto>(json);
 
         var result = dto?.Response?.Results?
             .OrderByDescending(r => MatchScore(movieTitle, releaseYear, r.WebTitle, r.Fields?.TrailText))
             .FirstOrDefault();
         if (result is null)
+        {
             return null;
+        }
 
         if (MatchScore(movieTitle, releaseYear, result.WebTitle, result.Fields?.TrailText) <= 0)
+        {
             return null;
+        }
 
         return new CriticReview
         {
@@ -61,11 +70,15 @@ public sealed class GuardianReviewProvider : IExternalReviewProvider
     {
         var text = $"{headline} {snippet}";
         if (string.IsNullOrWhiteSpace(text))
+        {
             return 0;
+        }
 
         var score = 0;
         if (text.Contains(movieTitle, StringComparison.OrdinalIgnoreCase))
+        {
             score += 10;
+        }
 
         var tokens = movieTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(t => t.Length > 2)
@@ -74,7 +87,9 @@ public sealed class GuardianReviewProvider : IExternalReviewProvider
         score += tokens.Count(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
 
         if (text.Contains(releaseYear.ToString(), StringComparison.OrdinalIgnoreCase))
+        {
             score += 2;
+        }
 
         return score;
     }

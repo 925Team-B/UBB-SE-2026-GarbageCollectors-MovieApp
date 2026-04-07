@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class BattleRepository : IBattleRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public BattleRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public virtual List<Battle> GetAll()
     {
         var battles = new List<Battle>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT BattleId, FirstMovieId, SecondMovieId, InitialRatingFirstMovie,
                    InitialRatingSecondMovie, StartDate, EndDate, Status
@@ -36,7 +36,7 @@ public class BattleRepository : IBattleRepository
 
     public virtual Battle? GetById(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT BattleId, FirstMovieId, SecondMovieId, InitialRatingFirstMovie,
                    InitialRatingSecondMovie, StartDate, EndDate, Status
@@ -58,11 +58,15 @@ public class BattleRepository : IBattleRepository
     public virtual int Insert(Battle battle)
     {
         if (battle.FirstMovie is null)
+        {
             throw new InvalidOperationException("Battle.FirstMovie is required for insert.");
+        }
         if (battle.SecondMovie is null)
+        {
             throw new InvalidOperationException("Battle.SecondMovie is required for insert.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO Battle (FirstMovieId, SecondMovieId, InitialRatingFirstMovie,
                                  InitialRatingSecondMovie, StartDate, EndDate, Status)
@@ -79,7 +83,7 @@ public class BattleRepository : IBattleRepository
         cmd.Parameters.AddWithValue("@status", StatusToInt(battle.Status));
 
         connection.Open();
-        var id = (int)cmd.ExecuteScalar()!;
+        var id = (int)cmd.ExecuteScalar() !;
         battle.BattleId = id;
         return id;
     }
@@ -87,11 +91,15 @@ public class BattleRepository : IBattleRepository
     public virtual bool Update(Battle battle)
     {
         if (battle.FirstMovie is null)
+        {
             throw new InvalidOperationException("Battle.FirstMovie is required for update.");
+        }
         if (battle.SecondMovie is null)
+        {
             throw new InvalidOperationException("Battle.SecondMovie is required for update.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE Battle
             SET FirstMovieId = @firstMovieId,
@@ -118,7 +126,7 @@ public class BattleRepository : IBattleRepository
 
     public virtual bool Delete(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM Battle WHERE BattleId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);

@@ -23,6 +23,7 @@ public class Review
     public bool IsExtraReview { get; set; }
 
     // Extra review fields
+
     /// <summary>Gets or sets the cinematography rating (0-5).</summary>
     public int CinematographyRating { get; set; }
 
@@ -54,6 +55,7 @@ public class Review
     public string? SoundText { get; set; }
 
     // Navigation properties
+
     /// <summary>Gets or sets the author user.</summary>
     public User? User { get; set; }
 

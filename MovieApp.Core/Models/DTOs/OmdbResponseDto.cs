@@ -6,7 +6,7 @@ namespace MovieApp.Core.Models.DTOs;
 public sealed class OmdbResponseDto
 {
     [JsonPropertyName("Ratings")]
-    public List<OmdbRatingDto> Ratings { get; set; } = new();
+    public List<OmdbRatingDto> Ratings { get; set; } = new ();
 }
 
 public sealed class OmdbRatingDto

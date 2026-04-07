@@ -17,6 +17,7 @@ public class Badge
     public int CriteriaValue { get; set; }
 
     // Navigation properties
+
     /// <summary>Gets or sets the collection of user-badge associations.</summary>
     public ICollection<UserBadge> UserBadges { get; set; } = new List<UserBadge>();
 }

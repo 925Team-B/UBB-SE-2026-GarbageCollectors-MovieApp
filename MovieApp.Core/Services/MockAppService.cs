@@ -7,21 +7,21 @@ namespace MovieApp.Core.Services;
 
 public sealed class MockAppService : ICatalogService, IReviewService, ICommentService, IBattleService, IPointService, IBadgeService
 {
-    private readonly object _sync = new();
-    private readonly string _filePath;
-    private MockDataFile _data;
+    private readonly object sync = new ();
+    private readonly string filePath;
+    private MockDataFile data;
 
     public MockAppService(string filePath)
     {
-        _filePath = filePath;
-        _data = LoadOrCreate();
+        this.filePath = filePath;
+        data = LoadOrCreate();
     }
 
     public Task<List<Movie>> GetAllMovies()
     {
-        lock (_sync)
+        lock (sync)
         {
-            var movies = _data.Movies
+            var movies = data.Movies
                 .Select(m => new Movie
                 {
                     MovieId = m.MovieId,
@@ -47,7 +47,9 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
     public async Task<List<Movie>> SearchMovies(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return await GetAllMovies();
+        }
 
         var movies = await GetAllMovies();
         return movies
@@ -60,7 +62,9 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
         var movies = await GetAllMovies();
 
         if (!string.IsNullOrWhiteSpace(genre))
+        {
             movies = movies.Where(m => m.Genre.Equals(genre, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
 
         movies = movies.Where(m => m.AverageRating >= minRating).ToList();
         return movies;
@@ -68,7 +72,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<List<Review>> GetReviewsForMovie(int movieId)
     {
-        lock (_sync)
+        lock (sync)
         {
             var reviews = BuildReviews()
                 .Where(r => r.Movie?.MovieId == movieId)
@@ -81,26 +85,34 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Review> AddReview(int userId, int movieId, float rating, string content)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var user = _data.Users.FirstOrDefault(u => u.UserId == userId)
+            var user = data.Users.FirstOrDefault(u => u.UserId == userId)
                 ?? throw new InvalidOperationException("User not found.");
-            var movie = _data.Movies.FirstOrDefault(m => m.MovieId == movieId)
+            var movie = data.Movies.FirstOrDefault(m => m.MovieId == movieId)
                 ?? throw new InvalidOperationException("Movie not found.");
 
-            if (_data.Reviews.Any(r => r.UserId == userId && r.MovieId == movieId))
+            if (data.Reviews.Any(r => r.UserId == userId && r.MovieId == movieId))
+            {
                 throw new InvalidOperationException("User has already reviewed this movie.");
+            }
 
             if (rating < 0 || rating > 5 || (rating * 2) % 1 != 0)
+            {
                 throw new InvalidOperationException("Rating must be between 0 and 5 in 0.5 increments.");
+            }
 
             if (!string.IsNullOrEmpty(content) && content.Length > 2000)
+            {
                 throw new InvalidOperationException("Review content must not exceed 2000 characters.");
+            }
 
             if (!string.IsNullOrEmpty(content) && content.Length < 50)
+            {
                 throw new InvalidOperationException("Review content must be at least 50 characters long.");
+            }
 
-            var reviewId = _data.NextReviewId++;
+            var reviewId = data.NextReviewId++;
             var entry = new ReviewEntry
             {
                 ReviewId = reviewId,
@@ -112,7 +124,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 IsExtraReview = false
             };
 
-            _data.Reviews.Add(entry);
+            data.Reviews.Add(entry);
             RecalculateAverageRating_NoLock(movie.MovieId);
             AddPoints_NoLock(userId, movieId, IsMovieInActiveBattle_NoLock(movieId));
             Save_NoLock();
@@ -123,19 +135,25 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task UpdateReview(int reviewId, float rating, string content)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var review = _data.Reviews.FirstOrDefault(r => r.ReviewId == reviewId)
+            var review = data.Reviews.FirstOrDefault(r => r.ReviewId == reviewId)
                 ?? throw new InvalidOperationException("Review not found.");
 
             if (rating < 0 || rating > 5 || (rating * 2) % 1 != 0)
+            {
                 throw new InvalidOperationException("Rating must be between 0 and 5 in 0.5 increments.");
+            }
 
             if (!string.IsNullOrEmpty(content) && content.Length > 2000)
+            {
                 throw new InvalidOperationException("Review content must not exceed 2000 characters.");
+            }
 
             if (!string.IsNullOrEmpty(content) && content.Length < 50)
+            {
                 throw new InvalidOperationException("Review content must be at least 50 characters long.");
+            }
 
             review.StarRating = rating;
             review.Content = content;
@@ -147,12 +165,12 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task DeleteReview(int reviewId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var review = _data.Reviews.FirstOrDefault(r => r.ReviewId == reviewId)
+            var review = data.Reviews.FirstOrDefault(r => r.ReviewId == reviewId)
                 ?? throw new InvalidOperationException("Review not found.");
 
-            _data.Reviews.Remove(review);
+            data.Reviews.Remove(review);
             RecalculateAverageRating_NoLock(review.MovieId);
             Save_NoLock();
             return Task.CompletedTask;
@@ -161,13 +179,15 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task SubmitExtraReview(int reviewId, int cgRating, string cgText, int actingRating, string actingText, int plotRating, string plotText, int soundRating, string soundText, int cinRating, string cinText, string mainExtraText)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var review = _data.Reviews.FirstOrDefault(r => r.ReviewId == reviewId)
+            var review = data.Reviews.FirstOrDefault(r => r.ReviewId == reviewId)
                 ?? throw new InvalidOperationException("Review not found.");
 
             if (string.IsNullOrEmpty(mainExtraText) || mainExtraText.Length < 500 || mainExtraText.Length > 12000)
+            {
                 throw new InvalidOperationException("Main extra text must be between 500 and 12000 characters.");
+            }
 
             ValidateCategoryText(cgText, "CGI");
             ValidateCategoryText(actingText, "Acting");
@@ -201,11 +221,13 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<double> GetAverageRating(int movieId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var reviews = _data.Reviews.Where(r => r.MovieId == movieId).ToList();
+            var reviews = data.Reviews.Where(r => r.MovieId == movieId).ToList();
             if (reviews.Count == 0)
+            {
                 return Task.FromResult(0d);
+            }
 
             return Task.FromResult(Math.Round(reviews.Average(r => r.StarRating), 1));
         }
@@ -213,7 +235,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<List<Comment>> GetCommentsForMovie(int movieId)
     {
-        lock (_sync)
+        lock (sync)
         {
             var comments = BuildComments()
                 .Where(c => c.Movie?.MovieId == movieId)
@@ -226,17 +248,24 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Comment> AddComment(int userId, int movieId, string content)
     {
-        lock (_sync)
+        lock (sync)
         {
             if (!string.IsNullOrEmpty(content) && content.Length > 10000)
+            {
                 throw new InvalidOperationException("Comment content must not exceed 10000 characters.");
+            }
 
-            if (_data.Users.All(u => u.UserId != userId))
+            if (data.Users.All(u => u.UserId != userId))
+            {
                 throw new InvalidOperationException("User not found.");
-            if (_data.Movies.All(m => m.MovieId != movieId))
-                throw new InvalidOperationException("Movie not found.");
+            }
 
-            var commentId = _data.NextCommentId++;
+            if (data.Movies.All(m => m.MovieId != movieId))
+            {
+                throw new InvalidOperationException("Movie not found.");
+            }
+
+            var commentId = data.NextCommentId++;
             var entry = new CommentEntry
             {
                 MessageId = commentId,
@@ -247,7 +276,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 CreatedAt = DateTime.UtcNow
             };
 
-            _data.Comments.Add(entry);
+            data.Comments.Add(entry);
             Save_NoLock();
             return Task.FromResult(BuildComment(entry));
         }
@@ -255,18 +284,22 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Comment> AddReply(int userId, int parentCommentId, string content)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var parent = _data.Comments.FirstOrDefault(c => c.MessageId == parentCommentId)
+            var parent = data.Comments.FirstOrDefault(c => c.MessageId == parentCommentId)
                 ?? throw new InvalidOperationException("Parent comment not found.");
 
             if (!string.IsNullOrEmpty(content) && content.Length > 10000)
+            {
                 throw new InvalidOperationException("Comment content must not exceed 10000 characters.");
+            }
 
-            if (_data.Users.All(u => u.UserId != userId))
+            if (data.Users.All(u => u.UserId != userId))
+            {
                 throw new InvalidOperationException("User not found.");
+            }
 
-            var commentId = _data.NextCommentId++;
+            var commentId = data.NextCommentId++;
             var entry = new CommentEntry
             {
                 MessageId = commentId,
@@ -277,7 +310,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 CreatedAt = DateTime.UtcNow
             };
 
-            _data.Comments.Add(entry);
+            data.Comments.Add(entry);
             Save_NoLock();
             return Task.FromResult(BuildComment(entry));
         }
@@ -285,13 +318,13 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task DeleteComment(int commentId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var comment = _data.Comments.FirstOrDefault(c => c.MessageId == commentId)
+            var comment = data.Comments.FirstOrDefault(c => c.MessageId == commentId)
                 ?? throw new InvalidOperationException("Comment not found.");
 
-            _data.Comments.Remove(comment);
-            _data.Comments.RemoveAll(c => c.ParentCommentId == commentId);
+            data.Comments.Remove(comment);
+            data.Comments.RemoveAll(c => c.ParentCommentId == commentId);
             Save_NoLock();
             return Task.CompletedTask;
         }
@@ -299,7 +332,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Battle?> GetActiveBattle()
     {
-        lock (_sync)
+        lock (sync)
         {
             var battle = BuildBattles().FirstOrDefault(b => b.Status == "Active");
             return Task.FromResult(battle);
@@ -308,25 +341,29 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Battle> CreateBattle(int firstMovieId, int secondMovieId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            if (_data.Battles.Any(b => b.Status == "Active"))
+            if (data.Battles.Any(b => b.Status == "Active"))
+            {
                 throw new InvalidOperationException("An active battle already exists.");
+            }
 
-            var first = _data.Movies.FirstOrDefault(m => m.MovieId == firstMovieId)
+            var first = data.Movies.FirstOrDefault(m => m.MovieId == firstMovieId)
                 ?? throw new InvalidOperationException("First movie not found.");
-            var second = _data.Movies.FirstOrDefault(m => m.MovieId == secondMovieId)
+            var second = data.Movies.FirstOrDefault(m => m.MovieId == secondMovieId)
                 ?? throw new InvalidOperationException("Second movie not found.");
 
             if (Math.Abs(first.AverageRating - second.AverageRating) > 0.5)
+            {
                 throw new InvalidOperationException("Rating difference between movies must be 0.5 or less.");
+            }
 
             var today = DateTime.UtcNow.Date;
             int daysUntilMonday = ((int)DayOfWeek.Monday - (int)today.DayOfWeek + 7) % 7;
             var startDate = today.AddDays(daysUntilMonday);
             var endDate = startDate.AddDays(6);
 
-            var id = _data.NextBattleId++;
+            var id = data.NextBattleId++;
             var entry = new BattleEntry
             {
                 BattleId = id,
@@ -339,7 +376,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 Status = "Active"
             };
 
-            _data.Battles.Add(entry);
+            data.Battles.Add(entry);
             Save_NoLock();
             return Task.FromResult(BuildBattle(entry));
         }
@@ -347,20 +384,30 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Bet> PlaceBet(int userId, int battleId, int movieId, int amount)
     {
-        lock (_sync)
+        lock (sync)
         {
             if (amount <= 0)
+            {
                 throw new InvalidOperationException("Bet amount must be greater than 0.");
+            }
 
-            if (_data.Bets.Any(b => b.UserId == userId && b.BattleId == battleId))
+            if (data.Bets.Any(b => b.UserId == userId && b.BattleId == battleId))
+            {
                 throw new InvalidOperationException("User has already placed a bet on this battle.");
+            }
 
-            if (_data.Users.All(u => u.UserId != userId))
+            if (data.Users.All(u => u.UserId != userId))
+            {
                 throw new InvalidOperationException("User not found.");
-            if (_data.Battles.All(b => b.BattleId != battleId))
+            }
+            if (data.Battles.All(b => b.BattleId != battleId))
+            {
                 throw new InvalidOperationException("Battle not found.");
-            if (_data.Movies.All(m => m.MovieId != movieId))
+            }
+            if (data.Movies.All(m => m.MovieId != movieId))
+            {
                 throw new InvalidOperationException("Movie not found.");
+            }
 
             FreezePoints_NoLock(userId, amount);
 
@@ -371,7 +418,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 MovieId = movieId,
                 Amount = amount
             };
-            _data.Bets.Add(entry);
+            data.Bets.Add(entry);
             Save_NoLock();
             return Task.FromResult(BuildBet(entry));
         }
@@ -379,22 +426,22 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Bet?> GetBet(int userId, int battleId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var bet = _data.Bets.FirstOrDefault(b => b.UserId == userId && b.BattleId == battleId);
+            var bet = data.Bets.FirstOrDefault(b => b.UserId == userId && b.BattleId == battleId);
             return Task.FromResult(bet is null ? null : BuildBet(bet));
         }
     }
 
     public Task<int> DetermineWinner(int battleId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var battle = _data.Battles.FirstOrDefault(b => b.BattleId == battleId)
+            var battle = data.Battles.FirstOrDefault(b => b.BattleId == battleId)
                 ?? throw new InvalidOperationException("Battle not found.");
 
-            var firstMovie = _data.Movies.FirstOrDefault(m => m.MovieId == battle.FirstMovieId);
-            var secondMovie = _data.Movies.FirstOrDefault(m => m.MovieId == battle.SecondMovieId);
+            var firstMovie = data.Movies.FirstOrDefault(m => m.MovieId == battle.FirstMovieId);
+            var secondMovie = data.Movies.FirstOrDefault(m => m.MovieId == battle.SecondMovieId);
 
             var firstImprovement = (firstMovie?.AverageRating ?? 0) - battle.InitialRatingFirstMovie;
             var secondImprovement = (secondMovie?.AverageRating ?? 0) - battle.InitialRatingSecondMovie;
@@ -407,16 +454,18 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
     {
         var winningMovieId = await DetermineWinner(battleId);
 
-        lock (_sync)
+        lock (sync)
         {
-            var battle = _data.Battles.FirstOrDefault(b => b.BattleId == battleId)
+            var battle = data.Battles.FirstOrDefault(b => b.BattleId == battleId)
                 ?? throw new InvalidOperationException("Battle not found.");
 
-            var bets = _data.Bets.Where(b => b.BattleId == battleId).ToList();
+            var bets = data.Bets.Where(b => b.BattleId == battleId).ToList();
             foreach (var bet in bets)
             {
                 if (bet.MovieId == winningMovieId)
+                    {
                     RefundPoints_NoLock(bet.UserId, bet.Amount * 2);
+                }
             }
 
             battle.Status = "Finished";
@@ -426,15 +475,17 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<Battle?> GetCurrentBattleForUser(int userId)
     {
-        lock (_sync)
+        lock (sync)
         {
             // Return active battle if one exists
             var active = BuildBattles().FirstOrDefault(b => b.Status == "Active");
             if (active != null)
+                {
                 return Task.FromResult<Battle?>(active);
+            }
 
             // No active battle — show the most recent battle regardless
-            var recentBattle = _data.Battles
+            var recentBattle = data.Battles
                 .OrderByDescending(b => b.EndDate)
                 .Select(BuildBattle)
                 .FirstOrDefault();
@@ -447,15 +498,17 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
     {
         var today = DateTime.UtcNow.Date;
         List<int> expiredIds;
-        lock (_sync)
+        lock (sync)
         {
-            expiredIds = _data.Battles
+            expiredIds = data.Battles
                 .Where(b => b.Status == "Active" && b.EndDate < today)
                 .Select(b => b.BattleId)
                 .ToList();
         }
         foreach (var id in expiredIds)
+        {
             await DistributePayouts(id);
+        }
     }
 
     public async Task ForceSettleBattleAsync(int battleId) => await DistributePayouts(battleId);
@@ -464,10 +517,10 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
     {
         // Refund frozen points for active bets
         List<(int UserId, int Amount)> refunds;
-        lock (_sync)
+        lock (sync)
         {
-            refunds = _data.Bets
-                .Join(_data.Battles.Where(b => b.Status == "Active"),
+            refunds = data.Bets
+                .Join(data.Battles.Where(b => b.Status == "Active"),
                       bet => bet.BattleId, battle => battle.BattleId,
                       (bet, _) => (bet.UserId, bet.Amount))
                 .ToList();
@@ -475,37 +528,45 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
         foreach (var (userId, amount) in refunds)
             await RefundPoints(userId, amount);
 
-        lock (_sync)
+        lock (sync)
         {
-            _data.Bets.Clear();
-            _data.Battles.Clear();
+            data.Bets.Clear();
+            data.Battles.Clear();
             Save_NoLock();
         }
     }
 
     public async Task<Battle> CreateDemoBattleAsync()
     {
-        lock (_sync)
+        lock (sync)
         {
-            var movies = _data.Movies
+            var movies = data.Movies
                 .Where(m => m.AverageRating > 0)
                 .OrderBy(m => m.AverageRating)
                 .ToList();
 
             var validPairs = new List<(Movie First, Movie Second)>();
             for (int i = 0; i < movies.Count - 1; i++)
+            {
                 for (int j = i + 1; j < movies.Count; j++)
+                {
                     if (Math.Abs(movies[i].AverageRating - movies[j].AverageRating) <= 0.5)
+                    {
                         validPairs.Add((movies[i], movies[j]));
+                    }
+                }
+            }
 
             if (validPairs.Count == 0)
+                {
                 throw new InvalidOperationException("No suitable movie pair found.");
+            }
 
             var chosen = validPairs[new Random().Next(validPairs.Count)];
             var (first, second) = chosen;
 
             var today = DateTime.UtcNow.Date;
-            var id = (_data.Battles.Any() ? _data.Battles.Max(b => b.BattleId) : 0) + 1;
+            var id = (data.Battles.Any() ? data.Battles.Max(b => b.BattleId) : 0) + 1;
             var entry = new BattleEntry
             {
                 BattleId = id,
@@ -517,7 +578,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 EndDate = today.AddDays(6),
                 Status = "Active"
             };
-            _data.Battles.Add(entry);
+            data.Battles.Add(entry);
             Save_NoLock();
             return BuildBattle(entry);
         }
@@ -525,22 +586,22 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<UserStats> GetUserStats(int userId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var user = _data.Users.FirstOrDefault(u => u.UserId == userId)
+            var user = data.Users.FirstOrDefault(u => u.UserId == userId)
                 ?? throw new InvalidOperationException("User not found.");
 
-            var stats = _data.UserStats.FirstOrDefault(s => s.UserId == userId);
+            var stats = data.UserStats.FirstOrDefault(s => s.UserId == userId);
             if (stats is null)
             {
                 stats = new UserStatsEntry
                 {
-                    StatsId = _data.NextStatsId++,
+                    StatsId = data.NextStatsId++,
                     UserId = userId,
                     TotalPoints = 0,
                     WeeklyScore = 0
                 };
-                _data.UserStats.Add(stats);
+                data.UserStats.Add(stats);
                 Save_NoLock();
             }
 
@@ -556,7 +617,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task AddPoints(int userId, int movieId, bool isBattleMovie)
     {
-        lock (_sync)
+        lock (sync)
         {
             AddPoints_NoLock(userId, movieId, isBattleMovie);
             Save_NoLock();
@@ -566,7 +627,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task DeductPoints(int userId, int points)
     {
-        lock (_sync)
+        lock (sync)
         {
             var stats = EnsureStats_NoLock(userId);
             stats.TotalPoints = Math.Max(0, stats.TotalPoints - points);
@@ -577,7 +638,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task FreezePoints(int userId, int amount)
     {
-        lock (_sync)
+        lock (sync)
         {
             FreezePoints_NoLock(userId, amount);
             Save_NoLock();
@@ -587,7 +648,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task RefundPoints(int userId, int amount)
     {
-        lock (_sync)
+        lock (sync)
         {
             RefundPoints_NoLock(userId, amount);
             Save_NoLock();
@@ -597,7 +658,7 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task UpdateWeeklyScore(int userId)
     {
-        lock (_sync)
+        lock (sync)
         {
             var stats = EnsureStats_NoLock(userId);
             stats.WeeklyScore = stats.TotalPoints;
@@ -608,27 +669,27 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     public Task<List<Badge>> GetUserBadges(int userId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var badgeIds = _data.UserBadges.Where(ub => ub.UserId == userId).Select(ub => ub.BadgeId).ToHashSet();
-            return Task.FromResult(_data.Badges.Where(b => badgeIds.Contains(b.BadgeId)).Select(CloneBadge).ToList());
+            var badgeIds = data.UserBadges.Where(ub => ub.UserId == userId).Select(ub => ub.BadgeId).ToHashSet();
+            return Task.FromResult(data.Badges.Where(b => badgeIds.Contains(b.BadgeId)).Select(CloneBadge).ToList());
         }
     }
 
     public Task<List<Badge>> GetAllBadges()
     {
-        lock (_sync)
+        lock (sync)
         {
-            return Task.FromResult(_data.Badges.Select(CloneBadge).ToList());
+            return Task.FromResult(data.Badges.Select(CloneBadge).ToList());
         }
     }
 
     public Task CheckAndAwardBadges(int userId)
     {
-        lock (_sync)
+        lock (sync)
         {
-            var existingBadgeIds = _data.UserBadges.Where(ub => ub.UserId == userId).Select(ub => ub.BadgeId).ToHashSet();
-            var userReviews = _data.Reviews.Where(r => r.UserId == userId).ToList();
+            var existingBadgeIds = data.UserBadges.Where(ub => ub.UserId == userId).Select(ub => ub.BadgeId).ToHashSet();
+            var userReviews = data.Reviews.Where(r => r.UserId == userId).ToList();
             var totalReviews = userReviews.Count;
             var extraReviews = userReviews.Count(r => r.IsExtraReview);
             var fullyCompletedExtraReviews = userReviews.Count(r =>
@@ -639,17 +700,19 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 !string.IsNullOrEmpty(r.PlotText) &&
                 !string.IsNullOrEmpty(r.SoundText));
 
-            var comedyMovieIds = _data.Movies
+            var comedyMovieIds = data.Movies
                 .Where(m => m.Genre.Equals("Comedy", StringComparison.OrdinalIgnoreCase))
                 .Select(m => m.MovieId)
                 .ToHashSet();
             var comedyReviews = userReviews.Count(r => comedyMovieIds.Contains(r.MovieId));
             var comedyPercentage = totalReviews > 0 ? (double)comedyReviews / totalReviews * 100 : 0;
 
-            foreach (var badge in _data.Badges)
+            foreach (var badge in data.Badges)
             {
                 if (existingBadgeIds.Contains(badge.BadgeId))
+                    {
                     continue;
+                }
 
                 var shouldAward = badge.Name switch
                 {
@@ -663,7 +726,9 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 };
 
                 if (shouldAward)
-                    _data.UserBadges.Add(new UserBadgeEntry { UserId = userId, BadgeId = badge.BadgeId });
+                    {
+                    data.UserBadges.Add(new UserBadgeEntry { UserId = userId, BadgeId = badge.BadgeId });
+                }
             }
 
             Save_NoLock();
@@ -671,12 +736,12 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
         }
     }
 
-    private List<Review> BuildReviews() => _data.Reviews.Select(BuildReview).ToList();
+    private List<Review> BuildReviews() => data.Reviews.Select(BuildReview).ToList();
 
     private Review BuildReview(ReviewEntry review)
     {
-        var user = _data.Users.First(u => u.UserId == review.UserId);
-        var movie = _data.Movies.First(m => m.MovieId == review.MovieId);
+        var user = data.Users.First(u => u.UserId == review.UserId);
+        var movie = data.Movies.First(m => m.MovieId == review.MovieId);
 
         return new Review
         {
@@ -710,8 +775,8 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     private List<Comment> BuildComments()
     {
-        var comments = _data.Comments.Select(BuildComment).ToDictionary(c => c.MessageId);
-        foreach (var entry in _data.Comments)
+        var comments = data.Comments.Select(BuildComment).ToDictionary(c => c.MessageId);
+        foreach (var entry in data.Comments)
         {
             if (entry.ParentCommentId.HasValue && comments.TryGetValue(entry.ParentCommentId.Value, out var parent))
             {
@@ -724,8 +789,8 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     private Comment BuildComment(CommentEntry entry)
     {
-        var user = _data.Users.First(u => u.UserId == entry.AuthorId);
-        var movie = _data.Movies.First(m => m.MovieId == entry.MovieId);
+        var user = data.Users.First(u => u.UserId == entry.AuthorId);
+        var movie = data.Movies.First(m => m.MovieId == entry.MovieId);
 
         return new Comment
         {
@@ -747,12 +812,12 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
         };
     }
 
-    private List<Battle> BuildBattles() => _data.Battles.Select(BuildBattle).ToList();
+    private List<Battle> BuildBattles() => data.Battles.Select(BuildBattle).ToList();
 
     private Battle BuildBattle(BattleEntry battle)
     {
-        var first = _data.Movies.First(m => m.MovieId == battle.FirstMovieId);
-        var second = _data.Movies.First(m => m.MovieId == battle.SecondMovieId);
+        var first = data.Movies.First(m => m.MovieId == battle.FirstMovieId);
+        var second = data.Movies.First(m => m.MovieId == battle.SecondMovieId);
 
         return new Battle
         {
@@ -785,9 +850,9 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     private Bet BuildBet(BetEntry bet)
     {
-        var user = _data.Users.First(u => u.UserId == bet.UserId);
-        var battle = _data.Battles.First(b => b.BattleId == bet.BattleId);
-        var movie = _data.Movies.First(m => m.MovieId == bet.MovieId);
+        var user = data.Users.First(u => u.UserId == bet.UserId);
+        var battle = data.Battles.First(b => b.BattleId == bet.BattleId);
+        var movie = data.Movies.First(m => m.MovieId == bet.MovieId);
 
         return new Bet
         {
@@ -808,32 +873,44 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     private void RecalculateAverageRating_NoLock(int movieId)
     {
-        var movie = _data.Movies.FirstOrDefault(m => m.MovieId == movieId);
-        if (movie is null) return;
+        var movie = data.Movies.FirstOrDefault(m => m.MovieId == movieId);
+        if (movie is null)
+        {
+            return;
+        }
 
-        var reviews = _data.Reviews.Where(r => r.MovieId == movieId).ToList();
+        var reviews = data.Reviews.Where(r => r.MovieId == movieId).ToList();
         movie.AverageRating = reviews.Count == 0 ? 0 : Math.Round(reviews.Average(r => r.StarRating), 1);
     }
 
     private bool IsMovieInActiveBattle_NoLock(int movieId)
     {
-        return _data.Battles.Any(b => b.Status == "Active" && (b.FirstMovieId == movieId || b.SecondMovieId == movieId));
+        return data.Battles.Any(b => b.Status == "Active" && (b.FirstMovieId == movieId || b.SecondMovieId == movieId));
     }
 
     private void AddPoints_NoLock(int userId, int movieId, bool isBattleMovie)
     {
         var stats = EnsureStats_NoLock(userId);
-        var movie = _data.Movies.FirstOrDefault(m => m.MovieId == movieId);
-        if (movie is null) return;
+        var movie = data.Movies.FirstOrDefault(m => m.MovieId == movieId);
+        if (movie is null)
+        {
+            return;
+        }
 
         var pointsToAdd = 0;
         if (movie.AverageRating > 3.5)
+            {
             pointsToAdd += 2;
+        }
         else if (movie.AverageRating < 2.0)
+            {
             pointsToAdd += 1;
+        }
 
         if (isBattleMovie)
+            {
             pointsToAdd += 5;
+        }
 
         stats.TotalPoints = Math.Max(0, stats.TotalPoints + pointsToAdd);
         CheckAndAwardBadges(userId).GetAwaiter().GetResult();
@@ -843,7 +920,9 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
     {
         var stats = EnsureStats_NoLock(userId);
         if (stats.TotalPoints < amount)
+            {
             throw new InvalidOperationException($"Insufficient points. You have {stats.TotalPoints} but need {amount}.");
+        }
 
         stats.TotalPoints -= amount;
     }
@@ -856,20 +935,20 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     private UserStatsEntry EnsureStats_NoLock(int userId)
     {
-        var user = _data.Users.FirstOrDefault(u => u.UserId == userId)
+        var user = data.Users.FirstOrDefault(u => u.UserId == userId)
             ?? throw new InvalidOperationException("User not found.");
 
-        var stats = _data.UserStats.FirstOrDefault(s => s.UserId == user.UserId);
+        var stats = data.UserStats.FirstOrDefault(s => s.UserId == user.UserId);
         if (stats is null)
         {
             stats = new UserStatsEntry
             {
-                StatsId = _data.NextStatsId++,
+                StatsId = data.NextStatsId++,
                 UserId = user.UserId,
                 TotalPoints = 0,
                 WeeklyScore = 0
             };
-            _data.UserStats.Add(stats);
+            data.UserStats.Add(stats);
         }
 
         return stats;
@@ -878,16 +957,20 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
     private static void ValidateCategoryText(string text, string categoryName)
     {
         if (string.IsNullOrEmpty(text) || text.Length < 50 || text.Length > 2000)
+            {
             throw new InvalidOperationException($"{categoryName} text must be between 50 and 2000 characters.");
+        }
     }
 
     private static void ValidateCategoryRating(int rating, string categoryName)
     {
         if (rating < 0 || rating > 5)
+            {
             throw new InvalidOperationException($"{categoryName} rating must be between 0 and 5.");
+        }
     }
 
-    private static Badge CloneBadge(Badge badge) => new()
+    private static Badge CloneBadge(Badge badge) => new ()
     {
         BadgeId = badge.BadgeId,
         Name = badge.Name,
@@ -896,33 +979,33 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
 
     private MockDataFile LoadOrCreate()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath) !);
 
-        if (!File.Exists(_filePath))
+        if (!File.Exists(filePath))
         {
             var initial = CreateInitialData();
-            File.WriteAllText(_filePath, JsonSerializer.Serialize(initial, JsonOptions));
+            File.WriteAllText(filePath, JsonSerializer.Serialize(initial, JsonOptions));
             return initial;
         }
 
         try
         {
-            var json = File.ReadAllText(_filePath);
+            var json = File.ReadAllText(filePath);
             var loaded = JsonSerializer.Deserialize<MockDataFile>(json, JsonOptions);
             return loaded ?? CreateInitialData();
         }
         catch
         {
             var initial = CreateInitialData();
-            File.WriteAllText(_filePath, JsonSerializer.Serialize(initial, JsonOptions));
+            File.WriteAllText(filePath, JsonSerializer.Serialize(initial, JsonOptions));
             return initial;
         }
     }
 
     private void Save_NoLock()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
-        File.WriteAllText(_filePath, JsonSerializer.Serialize(_data, JsonOptions));
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath) !);
+        File.WriteAllText(filePath, JsonSerializer.Serialize(data, JsonOptions));
     }
 
     private static MockDataFile CreateInitialData()
@@ -963,7 +1046,8 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
             [
                 new BattleEntry { BattleId = 1, FirstMovieId = 1, SecondMovieId = 4, InitialRatingFirstMovie = 4.5, InitialRatingSecondMovie = 4.4, StartDate = DateTime.UtcNow.Date, EndDate = DateTime.UtcNow.Date.AddDays(6), Status = "Active" }
             ],
-            Bets = [],
+            Bets =
+            [],
             UserStats =
             [
                 new UserStatsEntry { StatsId = 1, UserId = 1, TotalPoints = 50, WeeklyScore = 10 },
@@ -979,11 +1063,12 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
                 new Badge { BadgeId = 5, Name = "The Godfather II", CriteriaValue = 200 },
                 new Badge { BadgeId = 6, Name = "The Godfather III", CriteriaValue = 300 }
             ],
-            UserBadges = []
+            UserBadges =
+            []
         };
     }
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new ()
     {
         WriteIndented = true
     };
@@ -994,15 +1079,24 @@ public sealed class MockAppService : ICatalogService, IReviewService, ICommentSe
         public int NextCommentId { get; set; }
         public int NextBattleId { get; set; }
         public int NextStatsId { get; set; }
-        public List<User> Users { get; set; } = [];
-        public List<Movie> Movies { get; set; } = [];
-        public List<ReviewEntry> Reviews { get; set; } = [];
-        public List<CommentEntry> Comments { get; set; } = [];
-        public List<BattleEntry> Battles { get; set; } = [];
-        public List<BetEntry> Bets { get; set; } = [];
-        public List<UserStatsEntry> UserStats { get; set; } = [];
-        public List<Badge> Badges { get; set; } = [];
-        public List<UserBadgeEntry> UserBadges { get; set; } = [];
+        public List<User> Users { get; set; } =
+            [];
+        public List<Movie> Movies { get; set; } =
+            [];
+        public List<ReviewEntry> Reviews { get; set; } =
+            [];
+        public List<CommentEntry> Comments { get; set; } =
+            [];
+        public List<BattleEntry> Battles { get; set; } =
+            [];
+        public List<BetEntry> Bets { get; set; } =
+            [];
+        public List<UserStatsEntry> UserStats { get; set; } =
+            [];
+        public List<Badge> Badges { get; set; } =
+            [];
+        public List<UserBadgeEntry> UserBadges { get; set; } =
+            [];
     }
 
     private sealed class ReviewEntry

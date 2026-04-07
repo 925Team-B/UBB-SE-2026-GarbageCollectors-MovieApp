@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class ReviewRepository : IReviewRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public ReviewRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public virtual List<Review> GetAll()
     {
         var reviews = new List<Review>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT ReviewId, UserId, MovieId, StarRating, Content, CreatedAt, IsExtraReview,
                    CinematographyRating, CinematographyText, ActingRating, ActingText,
@@ -37,7 +37,7 @@ public class ReviewRepository : IReviewRepository
 
     public virtual Review? GetById(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT ReviewId, UserId, MovieId, StarRating, Content, CreatedAt, IsExtraReview,
                    CinematographyRating, CinematographyText, ActingRating, ActingText,
@@ -60,11 +60,16 @@ public class ReviewRepository : IReviewRepository
     public virtual int Insert(Review review)
     {
         if (review.User is null)
+        {
             throw new InvalidOperationException("Review.User is required for insert.");
-        if (review.Movie is null)
-            throw new InvalidOperationException("Review.Movie is required for insert.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        if (review.Movie is null)
+        {
+            throw new InvalidOperationException("Review.Movie is required for insert.");
+        }
+
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO Review (UserId, MovieId, StarRating, Content, CreatedAt, IsExtraReview,
                                  CinematographyRating, CinematographyText, ActingRating, ActingText,
@@ -92,7 +97,7 @@ public class ReviewRepository : IReviewRepository
         cmd.Parameters.AddWithValue("@soundText", (object?)review.SoundText ?? DBNull.Value);
 
         connection.Open();
-        var id = (int)cmd.ExecuteScalar()!;
+        var id = (int)cmd.ExecuteScalar() !;
         review.ReviewId = id;
         return id;
     }
@@ -100,11 +105,16 @@ public class ReviewRepository : IReviewRepository
     public virtual bool Update(Review review)
     {
         if (review.User is null)
+        {
             throw new InvalidOperationException("Review.User is required for update.");
-        if (review.Movie is null)
-            throw new InvalidOperationException("Review.Movie is required for update.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        if (review.Movie is null)
+        {
+            throw new InvalidOperationException("Review.Movie is required for update.");
+        }
+
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE Review
             SET UserId = @userId,
@@ -149,7 +159,7 @@ public class ReviewRepository : IReviewRepository
 
     public virtual bool Delete(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM Review WHERE ReviewId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);

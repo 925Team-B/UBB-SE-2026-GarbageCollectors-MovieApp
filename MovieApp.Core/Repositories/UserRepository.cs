@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public UserRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public virtual List<User> GetAll()
     {
         var users = new List<User>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("SELECT UserId FROM [User]", connection);
 
         connection.Open();
@@ -36,7 +36,7 @@ public class UserRepository : IUserRepository
 
     public virtual User? GetById(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("SELECT UserId FROM [User] WHERE UserId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);
@@ -56,20 +56,20 @@ public class UserRepository : IUserRepository
 
     public virtual int Insert(User user)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO [User] DEFAULT VALUES;
             SELECT CAST(SCOPE_IDENTITY() AS int);", connection);
 
         connection.Open();
-        var id = (int)cmd.ExecuteScalar()!;
+        var id = (int)cmd.ExecuteScalar() !;
         user.UserId = id;
         return id;
     }
 
     public virtual bool Update(User user)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE [User]
             SET UserId = UserId
@@ -83,7 +83,7 @@ public class UserRepository : IUserRepository
 
     public virtual bool Delete(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM [User] WHERE UserId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);

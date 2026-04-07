@@ -12,7 +12,7 @@ public sealed class NytApiResponseDto
 public sealed class NytResponseDto
 {
     [JsonPropertyName("docs")]
-    public List<NytDocDto> Docs { get; set; } = new();
+    public List<NytDocDto> Docs { get; set; } = new ();
 }
 
 public sealed class NytDocDto

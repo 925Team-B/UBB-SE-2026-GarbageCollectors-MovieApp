@@ -10,7 +10,7 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class CatalogService : ICatalogService
 {
-    private readonly IMovieRepository _movieRepository;
+    private readonly IMovieRepository movieRepository;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CatalogService"/>.
@@ -18,7 +18,7 @@ public class CatalogService : ICatalogService
     /// <param name="movieRepository">The movie repository.</param>
     public CatalogService(IMovieRepository movieRepository)
     {
-        _movieRepository = movieRepository;
+        this.movieRepository = movieRepository;
     }
 
     /// <summary>
@@ -27,7 +27,7 @@ public class CatalogService : ICatalogService
     /// <returns>A list of all movies.</returns>
     public async Task<List<Movie>> GetAllMovies()
     {
-        var movies = _movieRepository.GetAll()
+        var movies = movieRepository.GetAll()
             .OrderBy(m => m.Title)
             .ToList();
 
@@ -42,7 +42,7 @@ public class CatalogService : ICatalogService
     /// <exception cref="InvalidOperationException">Thrown when movie is not found.</exception>
     public async Task<Movie> GetMovieById(int movieId)
     {
-        var movie = _movieRepository.GetById(movieId);
+        var movie = movieRepository.GetById(movieId);
         return movie ?? throw new InvalidOperationException($"Movie with ID {movieId} not found.");
     }
 
@@ -54,9 +54,11 @@ public class CatalogService : ICatalogService
     public async Task<List<Movie>> SearchMovies(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return await GetAllMovies();
+        }
 
-        var movies = _movieRepository.GetAll()
+        var movies = movieRepository.GetAll()
             .Where(m => m.Title.ToLower().Contains(query.ToLower()))
             .OrderBy(m => m.Title)
             .ToList();
@@ -72,7 +74,7 @@ public class CatalogService : ICatalogService
     /// <returns>A list of filtered movies.</returns>
     public async Task<List<Movie>> FilterMovies(string genre, float minRating)
     {
-        var query = _movieRepository.GetAll().AsEnumerable();
+        var query = movieRepository.GetAll().AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(genre))
         {

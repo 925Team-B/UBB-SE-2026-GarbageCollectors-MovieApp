@@ -26,6 +26,7 @@ public class Battle
     public string Status { get; set; } = "Active";
 
     // Navigation properties
+
     /// <summary>Gets or sets the first movie.</summary>
     public Movie? FirstMovie { get; set; }
 

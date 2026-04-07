@@ -11,6 +11,7 @@ public class Bet
     public int Amount { get; set; }
 
     // Navigation properties
+
     /// <summary>Gets or sets the betting user.</summary>
     public User? User { get; set; }
 

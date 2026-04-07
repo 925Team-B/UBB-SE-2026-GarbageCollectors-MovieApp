@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class CommentRepository : ICommentRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public CommentRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public List<Comment> GetAll()
     {
         var comments = new List<Comment>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT MessageId, AuthorId, MovieId, ParentCommentId, Content, CreatedAt
             FROM Comment", connection);
@@ -35,7 +35,7 @@ public class CommentRepository : ICommentRepository
 
     public Comment? GetById(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT MessageId, AuthorId, MovieId, ParentCommentId, Content, CreatedAt
             FROM Comment
@@ -56,11 +56,16 @@ public class CommentRepository : ICommentRepository
     public int Insert(Comment comment)
     {
         if (comment.Author is null)
+        {
             throw new InvalidOperationException("Comment.Author is required for insert.");
-        if (comment.Movie is null)
-            throw new InvalidOperationException("Comment.Movie is required for insert.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        if (comment.Movie is null)
+        {
+            throw new InvalidOperationException("Comment.Movie is required for insert.");
+        }
+
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO Comment (AuthorId, MovieId, ParentCommentId, Content, CreatedAt)
             VALUES (@authorId, @movieId, @parentCommentId, @content, @createdAt);
@@ -73,7 +78,7 @@ public class CommentRepository : ICommentRepository
         cmd.Parameters.AddWithValue("@createdAt", comment.CreatedAt);
 
         connection.Open();
-        var id = (int)cmd.ExecuteScalar()!;
+        var id = (int)cmd.ExecuteScalar() !;
         comment.MessageId = id;
         return id;
     }
@@ -81,11 +86,15 @@ public class CommentRepository : ICommentRepository
     public bool Update(Comment comment)
     {
         if (comment.Author is null)
+        {
             throw new InvalidOperationException("Comment.Author is required for update.");
+        }
         if (comment.Movie is null)
+        {
             throw new InvalidOperationException("Comment.Movie is required for update.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE Comment
             SET AuthorId = @authorId,
@@ -108,7 +117,7 @@ public class CommentRepository : ICommentRepository
 
     public bool Delete(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM Comment WHERE MessageId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);
@@ -119,7 +128,6 @@ public class CommentRepository : ICommentRepository
 
     private static Comment MapComment(SqlDataReader reader)
     {
-
         var parentCommentIdOrdinal = reader.GetOrdinal("ParentCommentId");
 
         return new Comment

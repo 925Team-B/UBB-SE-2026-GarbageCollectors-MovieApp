@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class UserBadgeRepository : IUserBadgeRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public UserBadgeRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public List<UserBadge> GetAll()
     {
         var userBadges = new List<UserBadge>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT UserId, BadgeId
             FROM UserBadge", connection);
@@ -35,7 +35,7 @@ public class UserBadgeRepository : IUserBadgeRepository
 
     public UserBadge? GetById(int userId, int badgeId)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             SELECT UserId, BadgeId
             FROM UserBadge
@@ -57,11 +57,16 @@ public class UserBadgeRepository : IUserBadgeRepository
     public bool Insert(UserBadge userBadge)
     {
         if (userBadge.User is null)
+        {
             throw new InvalidOperationException("UserBadge.User is required for insert.");
-        if (userBadge.Badge is null)
-            throw new InvalidOperationException("UserBadge.Badge is required for insert.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        if (userBadge.Badge is null)
+        {
+            throw new InvalidOperationException("UserBadge.Badge is required for insert.");
+        }
+
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO UserBadge (UserId, BadgeId)
             VALUES (@userId, @badgeId)", connection);
@@ -76,11 +81,16 @@ public class UserBadgeRepository : IUserBadgeRepository
     public bool Update(UserBadge userBadge)
     {
         if (userBadge.User is null)
+        {
             throw new InvalidOperationException("UserBadge.User is required for update.");
-        if (userBadge.Badge is null)
-            throw new InvalidOperationException("UserBadge.Badge is required for update.");
+        }
 
-        using var connection = new SqlConnection(_connectionString);
+        if (userBadge.Badge is null)
+        {
+            throw new InvalidOperationException("UserBadge.Badge is required for update.");
+        }
+
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE UserBadge
             SET UserId = @userId,
@@ -96,7 +106,7 @@ public class UserBadgeRepository : IUserBadgeRepository
 
     public bool Delete(int userId, int badgeId)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             DELETE FROM UserBadge
             WHERE UserId = @userId AND BadgeId = @badgeId", connection);

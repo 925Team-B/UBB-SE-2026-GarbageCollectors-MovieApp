@@ -9,26 +9,30 @@ namespace MovieApp.Core.Services;
 
 public sealed class OmdbReviewProvider : IExternalReviewProvider
 {
-    private readonly HttpClient _httpClient;
-    private readonly ICacheService _cacheService;
+    private readonly HttpClient httpClient;
+    private readonly ICacheService cacheService;
 
     public OmdbReviewProvider(HttpClient httpClient, ICacheService cacheService)
     {
-        _httpClient = httpClient;
-        _cacheService = cacheService;
+        this.httpClient = httpClient;
+        this.cacheService = cacheService;
     }
 
     public async Task<CriticReview?> GetReviewAsync(string movieTitle, int releaseYear)
     {
         if (string.IsNullOrWhiteSpace(movieTitle))
+        {
             return null;
+        }
 
         var url = $"https://www.omdbapi.com/?apikey=57b3a80a&t={Uri.EscapeDataString(movieTitle)}&y={releaseYear}";
         var cacheKey = BuildCacheKey("omdb", movieTitle, releaseYear);
 
-        var json = await _cacheService.FetchOrCacheAsync(cacheKey, url, _httpClient);
+        var json = await cacheService.FetchOrCacheAsync(cacheKey, url, httpClient);
         if (string.IsNullOrWhiteSpace(json))
+        {
             return null;
+        }
 
         OmdbResponseDto? dto;
         try
@@ -42,7 +46,9 @@ public sealed class OmdbReviewProvider : IExternalReviewProvider
 
         var firstRating = dto?.Ratings?.FirstOrDefault();
         if (firstRating is null)
+        {
             return null;
+        }
 
         return new CriticReview
         {
@@ -64,12 +70,16 @@ public sealed class OmdbReviewProvider : IExternalReviewProvider
     private static double ParseScore(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return 0;
+        }
 
         var trimmed = value.Trim();
 
         if (trimmed.EndsWith('%') && double.TryParse(trimmed.TrimEnd('%'), NumberStyles.Number, CultureInfo.InvariantCulture, out var percent))
+        {
             return Math.Round(Math.Clamp(percent / 20.0, 0, 5), 1);
+        }
 
         if (trimmed.Contains('/'))
         {

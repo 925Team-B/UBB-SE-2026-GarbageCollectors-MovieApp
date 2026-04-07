@@ -10,6 +10,4 @@ public interface IUserStatsRepository
     public int Insert(UserStats userStats);
     public bool Update(UserStats userStats);
     public bool Delete(int id);
-    
-
 }

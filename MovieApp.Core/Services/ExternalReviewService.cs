@@ -10,10 +10,10 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class ExternalReviewService
 {
-    private readonly IEnumerable<IExternalReviewProvider> _providers;
+    private readonly IEnumerable<IExternalReviewProvider> providers;
 
     // Common stop words to filter out in lexicon analysis
-    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> StopWords = new (StringComparer.OrdinalIgnoreCase)
     {
         "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
         "of", "with", "by", "from", "is", "it", "this", "that", "was", "are",
@@ -32,7 +32,7 @@ public class ExternalReviewService
     /// <param name="providers">External review providers.</param>
     public ExternalReviewService(IEnumerable<IExternalReviewProvider> providers)
     {
-        _providers = providers;
+        this.providers = providers;
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ public class ExternalReviewService
     /// <returns>A list of critic reviews from various sources.</returns>
     public async Task<List<CriticReview>> GetExternalReviews(string movieTitle, int releaseYear)
     {
-        var tasks = _providers.Select(async provider =>
+        var tasks = providers.Select(async provider =>
         {
             try
             {
@@ -74,10 +74,10 @@ public class ExternalReviewService
 
         // Mock aggregate scores — use wider ranges so polarization is visible in demos
         var hash = Math.Abs(movieTitle.GetHashCode());
-        double criticScore  = 1.5 + (hash % 35) / 10.0;   // range 1.5 – 5.0
-        double audienceScore = 1.0 + (hash % 40) / 10.0;  // range 1.0 – 5.0
+        double criticScore = 1.5 + ((hash % 35) / 10.0);   // range 1.5 – 5.0
+        double audienceScore = 1.0 + ((hash % 40) / 10.0);  // range 1.0 – 5.0
 
-        criticScore  = Math.Min(5.0, Math.Round(criticScore,  1));
+        criticScore = Math.Min(5.0, Math.Round(criticScore,  1));
         audienceScore = Math.Min(5.0, Math.Round(audienceScore, 1));
 
         return (criticScore, audienceScore);
@@ -102,12 +102,18 @@ public class ExternalReviewService
             {
                 var cleanWord = word.Trim().ToLower();
                 if (cleanWord.Length < 3 || StopWords.Contains(cleanWord))
+                {
                     continue;
+                }
 
                 if (wordCounts.ContainsKey(cleanWord))
+                {
                     wordCounts[cleanWord]++;
+                }
                 else
+                {
                     wordCounts[cleanWord] = 1;
+                }
             }
         }
 

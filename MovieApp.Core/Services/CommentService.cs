@@ -10,9 +10,9 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class CommentService : ICommentService
 {
-    private readonly ICommentRepository _commentRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IMovieRepository _movieRepository;
+    private readonly ICommentRepository commentRepository;
+    private readonly IUserRepository userRepository;
+    private readonly IMovieRepository movieRepository;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CommentService"/>.
@@ -25,9 +25,9 @@ public class CommentService : ICommentService
         IUserRepository userRepository,
         IMovieRepository movieRepository)
     {
-        _commentRepository = commentRepository;
-        _userRepository = userRepository;
-        _movieRepository = movieRepository;
+        this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
+        this.movieRepository = movieRepository;
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ public class CommentService : ICommentService
     /// <returns>A flat list of comments.</returns>
     public async Task<List<Comment>> GetCommentsForMovie(int movieId)
     {
-        var comments = _commentRepository.GetAll()
+        var comments = commentRepository.GetAll()
             .Where(c => c.Movie?.MovieId == movieId)
             .OrderByDescending(c => c.CreatedAt)
             .ToList();
@@ -57,11 +57,13 @@ public class CommentService : ICommentService
     public async Task<Comment> AddComment(int userId, int movieId, string content)
     {
         if (!string.IsNullOrEmpty(content) && content.Length > 10000)
+        {
             throw new InvalidOperationException("Comment content must not exceed 10000 characters.");
+        }
 
-        var author = _userRepository.GetById(userId)
+        var author = userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
-        var movie = _movieRepository.GetById(movieId)
+        var movie = movieRepository.GetById(movieId)
             ?? throw new InvalidOperationException("Movie not found.");
 
         var comment = new Comment
@@ -73,7 +75,7 @@ public class CommentService : ICommentService
             ParentComment = null
         };
 
-        _commentRepository.Insert(comment);
+        commentRepository.Insert(comment);
 
         return comment;
     }
@@ -88,17 +90,19 @@ public class CommentService : ICommentService
     /// <exception cref="InvalidOperationException">Thrown when parent not found or content invalid.</exception>
     public async Task<Comment> AddReply(int userId, int parentCommentId, string content)
     {
-        var parentComment = _commentRepository.GetById(parentCommentId)
+        var parentComment = commentRepository.GetById(parentCommentId)
             ?? throw new InvalidOperationException("Parent comment not found.");
 
         if (!string.IsNullOrEmpty(content) && content.Length > 10000)
+        {
             throw new InvalidOperationException("Comment content must not exceed 10000 characters.");
+        }
 
-        var author = _userRepository.GetById(userId)
+        var author = userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
         var parentMovieId = parentComment.Movie?.MovieId
             ?? throw new InvalidOperationException("Parent comment movie is not available.");
-        var movie = _movieRepository.GetById(parentMovieId)
+        var movie = movieRepository.GetById(parentMovieId)
             ?? throw new InvalidOperationException("Movie not found.");
 
         var reply = new Comment
@@ -110,7 +114,7 @@ public class CommentService : ICommentService
             ParentComment = new Comment { MessageId = parentCommentId }
         };
 
-        _commentRepository.Insert(reply);
+        commentRepository.Insert(reply);
 
         return reply;
     }
@@ -121,10 +125,10 @@ public class CommentService : ICommentService
     /// <param name="commentId">The comment identifier.</param>
     public async Task DeleteComment(int commentId)
     {
-        var comment = _commentRepository.GetById(commentId)
+        var comment = commentRepository.GetById(commentId)
             ?? throw new InvalidOperationException("Comment not found.");
 
-        _commentRepository.Delete(comment.MessageId);
+        commentRepository.Delete(comment.MessageId);
         await Task.CompletedTask;
     }
 }

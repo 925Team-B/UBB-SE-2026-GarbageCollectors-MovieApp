@@ -7,11 +7,11 @@ namespace MovieApp.Tests.Unit.Repositories
 {
     public class CommentRepositoryUnitTests
     {
-        private readonly CommentRepository _repo;
+        private readonly CommentRepository repo;
 
         public CommentRepositoryUnitTests()
         {
-            _repo = new CommentRepository("fake-connection-string");
+            repo = new CommentRepository("fake-connection-string");
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 CreatedAt = new DateTime(2025, 1, 1, 10, 0, 0)
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(comment));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(comment));
             Assert.Equal("Comment.Author is required for insert.", ex.Message);
         }
 
@@ -40,7 +40,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 CreatedAt = new DateTime(2025, 1, 1, 10, 0, 0)
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Insert(comment));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Insert(comment));
             Assert.Equal("Comment.Movie is required for insert.", ex.Message);
         }
 
@@ -56,7 +56,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 CreatedAt = new DateTime(2025, 2, 1, 10, 0, 0)
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(comment));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(comment));
             Assert.Equal("Comment.Author is required for update.", ex.Message);
         }
 
@@ -72,7 +72,7 @@ namespace MovieApp.Tests.Unit.Repositories
                 CreatedAt = new DateTime(2025, 2, 1, 10, 0, 0)
             };
 
-            var ex = Assert.Throws<InvalidOperationException>(() => _repo.Update(comment));
+            var ex = Assert.Throws<InvalidOperationException>(() => repo.Update(comment));
             Assert.Equal("Comment.Movie is required for update.", ex.Message);
         }
     }

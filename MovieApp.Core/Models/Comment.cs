@@ -11,6 +11,7 @@ public class Comment
     public int MessageId { get; set; }
 
     // --- ADDED FOREIGN KEY PROPERTIES ---
+
     /// <summary>Gets or sets the ID of the author.</summary>
     public int AuthorId { get; set; }
 
@@ -28,6 +29,7 @@ public class Comment
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
+
     /// <summary>Gets or sets the author user.</summary>
     public User? Author { get; set; }
 

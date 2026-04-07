@@ -1,37 +1,37 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class CommentRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly CommentRepository _repo;
-        private readonly MovieRepository _movieRepo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly CommentRepository repo;
+        private readonly MovieRepository movieRepo;
 
         public CommentRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_Comment_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_Comment_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new CommentRepository(_connectionString);
-            _movieRepo = new MovieRepository(_connectionString);
+            repo = new CommentRepository(connectionString);
+            movieRepo = new MovieRepository(connectionString);
 
             ClearTables();
         }
 
         private void ClearTables()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM Bet", conn).ExecuteNonQuery();
@@ -47,12 +47,12 @@ namespace MovieApp.Tests.Integration.Repositories
             {
                 Title = title,
                 Year = year,
-                PosterUrl = title.Replace(" ", "") + ".jpg",
+                PosterUrl = title.Replace(" ", string.Empty) + ".jpg",
                 Genre = genre,
                 AverageRating = rating
             };
 
-            int id = _movieRepo.Insert(movie);
+            int id = movieRepo.Insert(movie);
             movie.MovieId = id;
             return movie;
         }
@@ -71,10 +71,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -94,11 +94,11 @@ END", conn);
                 CreatedAt = new DateTime(2025, 1, 1, 10, 0, 0)
             };
 
-            int id = _repo.Insert(comment);
+            int id = repo.Insert(comment);
 
             Assert.True(id > 0);
 
-            var insertedComment = _repo.GetById(id);
+            var insertedComment = repo.GetById(id);
             Assert.NotNull(insertedComment);
             Assert.Equal("Nice movie", insertedComment!.Content);
             Assert.Equal(1, insertedComment.Author!.UserId);
@@ -119,7 +119,7 @@ END", conn);
                 CreatedAt = new DateTime(2025, 1, 1, 10, 0, 0)
             };
 
-            Assert.Throws<InvalidOperationException>(() => _repo.Insert(comment));
+            Assert.Throws<InvalidOperationException>(() => repo.Insert(comment));
         }
 
         [Fact]
@@ -127,7 +127,7 @@ END", conn);
         {
             var movie = CreateMovie("Comment Movie", 2020, "Drama", 8.0);
 
-            _repo.Insert(new Comment
+            repo.Insert(new Comment
             {
                 Author = ExistingUser(1),
                 Movie = movie,
@@ -135,7 +135,7 @@ END", conn);
                 CreatedAt = new DateTime(2025, 1, 1, 10, 0, 0)
             });
 
-            _repo.Insert(new Comment
+            repo.Insert(new Comment
             {
                 Author = ExistingUser(2),
                 Movie = movie,
@@ -143,7 +143,7 @@ END", conn);
                 CreatedAt = new DateTime(2025, 1, 1, 11, 0, 0)
             });
 
-            var comments = _repo.GetAll();
+            var comments = repo.GetAll();
 
             Assert.Equal(2, comments.Count);
         }
@@ -161,9 +161,9 @@ END", conn);
                 CreatedAt = new DateTime(2025, 2, 1, 9, 0, 0)
             };
 
-            int id = _repo.Insert(comment);
+            int id = repo.Insert(comment);
 
-            var result = _repo.GetById(id);
+            var result = repo.GetById(id);
 
             Assert.NotNull(result);
             Assert.Equal(id, result!.MessageId);
@@ -175,7 +175,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingComment_ReturnsNull()
         {
-            var result = _repo.GetById(999999);
+            var result = repo.GetById(999999);
 
             Assert.Null(result);
         }
@@ -193,18 +193,18 @@ END", conn);
                 CreatedAt = new DateTime(2025, 3, 1, 8, 0, 0)
             };
 
-            int id = _repo.Insert(comment);
+            int id = repo.Insert(comment);
 
             comment.MessageId = id;
             comment.Content = "New content";
             comment.Author = ExistingUser(2);
             comment.CreatedAt = new DateTime(2025, 3, 2, 8, 0, 0);
 
-            bool updated = _repo.Update(comment);
+            bool updated = repo.Update(comment);
 
             Assert.True(updated);
 
-            var updatedComment = _repo.GetById(id);
+            var updatedComment = repo.GetById(id);
             Assert.NotNull(updatedComment);
             Assert.Equal("New content", updatedComment!.Content);
             Assert.Equal(2, updatedComment.Author!.UserId);
@@ -225,7 +225,7 @@ END", conn);
                 CreatedAt = new DateTime(2025, 3, 1, 8, 0, 0)
             };
 
-            bool updated = _repo.Update(comment);
+            bool updated = repo.Update(comment);
 
             Assert.False(updated);
         }
@@ -243,18 +243,18 @@ END", conn);
                 CreatedAt = new DateTime(2025, 4, 1, 8, 0, 0)
             };
 
-            int id = _repo.Insert(comment);
+            int id = repo.Insert(comment);
 
-            bool deleted = _repo.Delete(id);
+            bool deleted = repo.Delete(id);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(id));
+            Assert.Null(repo.GetById(id));
         }
 
         [Fact]
         public void Delete_NonExistingComment_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999999);
+            bool deleted = repo.Delete(999999);
 
             Assert.False(deleted);
         }
@@ -272,7 +272,7 @@ END", conn);
                 CreatedAt = new DateTime(2025, 5, 1, 10, 0, 0)
             };
 
-            int parentId = _repo.Insert(parent);
+            int parentId = repo.Insert(parent);
             parent.MessageId = parentId;
 
             var reply = new Comment
@@ -284,9 +284,9 @@ END", conn);
                 CreatedAt = new DateTime(2025, 5, 1, 11, 0, 0)
             };
 
-            int replyId = _repo.Insert(reply);
+            int replyId = repo.Insert(reply);
 
-            var insertedReply = _repo.GetById(replyId);
+            var insertedReply = repo.GetById(replyId);
 
             Assert.NotNull(insertedReply);
             Assert.NotNull(insertedReply!.ParentComment);

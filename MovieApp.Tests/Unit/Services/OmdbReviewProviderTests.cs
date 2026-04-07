@@ -7,14 +7,14 @@ namespace Tests.Unit.Services;
 
 public class OmdbReviewProviderTests
 {
-    private readonly Mock<ICacheService> _cacheServiceMock = new();
-    private readonly HttpClient _httpClient = new();
+    private readonly Mock<ICacheService> cacheServiceMock = new ();
+    private readonly HttpClient httpClient = new ();
 
     private OmdbReviewProvider CreateSut() =>
-        new(_httpClient, _cacheServiceMock.Object);
+        new (httpClient, cacheServiceMock.Object);
 
     private void SetupCache(string json) =>
-        _cacheServiceMock
+        cacheServiceMock
             .Setup(c => c.FetchOrCacheAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<HttpClient>()))
             .ReturnsAsync(json);
 
@@ -192,7 +192,7 @@ public class OmdbReviewProviderTests
     {
         var json = JsonSerializer.Serialize(new
         {
-            Ratings = new[] { new { Source = "Some Source", Value = "" } }
+            Ratings = new[] { new { Source = "Some Source", Value = string.Empty } }
         });
         SetupCache(json);
         var sut = CreateSut();

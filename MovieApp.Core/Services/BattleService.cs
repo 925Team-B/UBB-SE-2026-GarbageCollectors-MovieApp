@@ -10,11 +10,11 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class BattleService : IBattleService
 {
-    private readonly IBattleRepository _battleRepository;
-    private readonly IBetRepository _betRepository;
-    private readonly IMovieRepository _movieRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IPointService _pointService;
+    private readonly IBattleRepository battleRepository;
+    private readonly IBetRepository betRepository;
+    private readonly IMovieRepository movieRepository;
+    private readonly IUserRepository userRepository;
+    private readonly IPointService pointService;
 
     /// <summary>
     /// Initializes a new instance of <see cref="BattleService"/>.
@@ -31,11 +31,11 @@ public class BattleService : IBattleService
         IUserRepository userRepository,
         IPointService pointService)
     {
-        _battleRepository = battleRepository;
-        _betRepository = betRepository;
-        _movieRepository = movieRepository;
-        _userRepository = userRepository;
-        _pointService = pointService;
+        this.battleRepository = battleRepository;
+        this.betRepository = betRepository;
+        this.movieRepository = movieRepository;
+        this.userRepository = userRepository;
+        this.pointService = pointService;
     }
 
     /// <summary>
@@ -44,15 +44,20 @@ public class BattleService : IBattleService
     /// <returns>The active battle or null.</returns>
     public async Task<Battle?> GetActiveBattle()
     {
-        var battle = _battleRepository.GetAll()
+        var battle = battleRepository.GetAll()
             .FirstOrDefault(b => b.Status == "Active");
 
         if (battle != null)
         {
             if (battle.FirstMovie != null)
-                battle.FirstMovie = _movieRepository.GetById(battle.FirstMovie.MovieId) ?? battle.FirstMovie;
+            {
+                battle.FirstMovie = movieRepository.GetById(battle.FirstMovie.MovieId) ?? battle.FirstMovie;
+            }
+
             if (battle.SecondMovie != null)
-                battle.SecondMovie = _movieRepository.GetById(battle.SecondMovie.MovieId) ?? battle.SecondMovie;
+            {
+                battle.SecondMovie = movieRepository.GetById(battle.SecondMovie.MovieId) ?? battle.SecondMovie;
+            }
         }
 
         return await Task.FromResult(battle);
@@ -69,25 +74,33 @@ public class BattleService : IBattleService
     public async Task<Battle> CreateBattle(int firstMovieId, int secondMovieId)
     {
         // Check no active battle exists
-        var activeBattle = _battleRepository.GetAll()
+        var activeBattle = battleRepository.GetAll()
             .Any(b => b.Status == "Active");
         if (activeBattle)
+        {
             throw new InvalidOperationException("An active battle already exists.");
+        }
 
-        var firstMovie = _movieRepository.GetById(firstMovieId)
+        var firstMovie = movieRepository.GetById(firstMovieId)
             ?? throw new InvalidOperationException("First movie not found.");
-        var secondMovie = _movieRepository.GetById(secondMovieId)
+        var secondMovie = movieRepository.GetById(secondMovieId)
             ?? throw new InvalidOperationException("Second movie not found.");
 
         // Validate rating difference
         if (Math.Abs(firstMovie.AverageRating - secondMovie.AverageRating) > 0.5)
+        {
             throw new InvalidOperationException(
                 "Rating difference between movies must be 0.5 or less.");
+        }
 
         // Calculate start (Monday) and end (Sunday)
         var today = DateTime.UtcNow.Date;
         int daysUntilMonday = ((int)DayOfWeek.Monday - (int)today.DayOfWeek + 7) % 7;
-        if (daysUntilMonday == 0) daysUntilMonday = 0; // If today is Monday, start today
+        if (daysUntilMonday == 0)
+        {
+            daysUntilMonday = 0; // If today is Monday, start today
+        }
+
         var startDate = today.AddDays(daysUntilMonday);
         var endDate = startDate.AddDays(6);
 
@@ -102,7 +115,7 @@ public class BattleService : IBattleService
             Status = "Active"
         };
 
-        _battleRepository.Insert(battle);
+        battleRepository.Insert(battle);
 
         return battle;
     }
@@ -119,23 +132,27 @@ public class BattleService : IBattleService
     public async Task<Bet> PlaceBet(int userId, int battleId, int movieId, int amount)
     {
         if (amount <= 0)
+        {
             throw new InvalidOperationException("Bet amount must be greater than 0.");
+        }
 
         // Check if user already bet on this battle
-        var existingBet = _betRepository.GetAll()
+        var existingBet = betRepository.GetAll()
             .Any(b => b.User?.UserId == userId && b.Battle?.BattleId == battleId);
         if (existingBet)
+        {
             throw new InvalidOperationException("User has already placed a bet on this battle.");
+        }
 
-        var user = _userRepository.GetById(userId)
+        var user = userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
-        var battle = _battleRepository.GetById(battleId)
+        var battle = battleRepository.GetById(battleId)
             ?? throw new InvalidOperationException("Battle not found.");
-        var movie = _movieRepository.GetById(movieId)
+        var movie = movieRepository.GetById(movieId)
             ?? throw new InvalidOperationException("Movie not found.");
 
         // Freeze the points
-        await _pointService.FreezePoints(userId, amount);
+        await pointService.FreezePoints(userId, amount);
 
         var bet = new Bet
         {
@@ -145,7 +162,7 @@ public class BattleService : IBattleService
             Amount = amount
         };
 
-        _betRepository.Insert(bet);
+        betRepository.Insert(bet);
 
         return bet;
     }
@@ -158,7 +175,7 @@ public class BattleService : IBattleService
     /// <returns>The user's bet or null.</returns>
     public async Task<Bet?> GetBet(int userId, int battleId)
     {
-        var bet = _betRepository.GetAll()
+        var bet = betRepository.GetAll()
             .FirstOrDefault(b => b.User?.UserId == userId && b.Battle?.BattleId == battleId);
 
         return await Task.FromResult(bet);
@@ -171,13 +188,18 @@ public class BattleService : IBattleService
     /// <returns>The winning movie's ID.</returns>
     public async Task<int> DetermineWinner(int battleId)
     {
-        var battle = _battleRepository.GetById(battleId)
+        var battle = battleRepository.GetById(battleId)
             ?? throw new InvalidOperationException("Battle not found.");
 
         if (battle.FirstMovie != null)
-            battle.FirstMovie = _movieRepository.GetById(battle.FirstMovie.MovieId) ?? battle.FirstMovie;
+        {
+            battle.FirstMovie = movieRepository.GetById(battle.FirstMovie.MovieId) ?? battle.FirstMovie;
+        }
+
         if (battle.SecondMovie != null)
-            battle.SecondMovie = _movieRepository.GetById(battle.SecondMovie.MovieId) ?? battle.SecondMovie;
+        {
+            battle.SecondMovie = movieRepository.GetById(battle.SecondMovie.MovieId) ?? battle.SecondMovie;
+        }
 
         double firstImprovement = (battle.FirstMovie?.AverageRating ?? 0) - battle.InitialRatingFirstMovie;
         double secondImprovement = (battle.SecondMovie?.AverageRating ?? 0) - battle.InitialRatingSecondMovie;
@@ -188,26 +210,32 @@ public class BattleService : IBattleService
     }
 
     /// <summary>
-    /// 
     /// Gets the active battle, or the most recent battle the user has bet on if no active battle exists.
     /// </summary>
     public async Task<Battle?> GetCurrentBattleForUser(int userId)
     {
         var active = await GetActiveBattle();
         if (active != null)
+        {
             return active;
+        }
 
         // No active battle — show the most recent battle (so users can always see the last matchup)
-        var recentBattle = _battleRepository.GetAll()
+        var recentBattle = battleRepository.GetAll()
             .OrderByDescending(b => b.EndDate)
             .FirstOrDefault();
 
         if (recentBattle != null)
         {
             if (recentBattle.FirstMovie != null)
-                recentBattle.FirstMovie = _movieRepository.GetById(recentBattle.FirstMovie.MovieId) ?? recentBattle.FirstMovie;
+            {
+                recentBattle.FirstMovie = movieRepository.GetById(recentBattle.FirstMovie.MovieId) ?? recentBattle.FirstMovie;
+            }
+
             if (recentBattle.SecondMovie != null)
-                recentBattle.SecondMovie = _movieRepository.GetById(recentBattle.SecondMovie.MovieId) ?? recentBattle.SecondMovie;
+            {
+                recentBattle.SecondMovie = movieRepository.GetById(recentBattle.SecondMovie.MovieId) ?? recentBattle.SecondMovie;
+            }
         }
 
         return recentBattle;
@@ -220,12 +248,14 @@ public class BattleService : IBattleService
     public async Task SettleExpiredBattlesAsync()
     {
         var today = DateTime.UtcNow.Date;
-        var expired = _battleRepository.GetAll()
+        var expired = battleRepository.GetAll()
             .Where(b => b.Status == "Active" && b.EndDate < today)
             .ToList();
 
         foreach (var battle in expired)
+        {
             await DistributePayouts(battle.BattleId);
+        }
     }
 
     /// <summary>
@@ -236,7 +266,7 @@ public class BattleService : IBattleService
     {
         int winningMovieId = await DetermineWinner(battleId);
 
-        var bets = _betRepository.GetAll()
+        var bets = betRepository.GetAll()
             .Where(b => b.Battle?.BattleId == battleId)
             .ToList();
 
@@ -245,16 +275,16 @@ public class BattleService : IBattleService
             if (bet.Movie?.MovieId == winningMovieId)
             {
                 // Winner gets Amount * 2
-                await _pointService.RefundPoints(bet.User?.UserId ?? 0, bet.Amount * 2);
+                await pointService.RefundPoints(bet.User?.UserId ?? 0, bet.Amount * 2);
             }
             // Losers lose their frozen points (already deducted)
         }
 
-        var battle = _battleRepository.GetById(battleId);
+        var battle = battleRepository.GetById(battleId);
         if (battle != null)
         {
             battle.Status = "Finished";
-            _battleRepository.Update(battle);
+            battleRepository.Update(battle);
         }
     }
 

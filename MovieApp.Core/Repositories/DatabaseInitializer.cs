@@ -5,16 +5,16 @@ namespace MovieApp.Core.Repositories;
 
 public class DatabaseInitializer
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public DatabaseInitializer(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public void EnsureCreatedAndSeeded()
     {
-        var builder = new SqlConnectionStringBuilder(_connectionString);
+        var builder = new SqlConnectionStringBuilder(connectionString);
         var dbName = builder.InitialCatalog;
         builder.InitialCatalog = "master";
 
@@ -27,7 +27,7 @@ public class DatabaseInitializer
             createDbCmd.ExecuteNonQuery();
         }
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         connection.Open();
 
         var createTablesSql = @"

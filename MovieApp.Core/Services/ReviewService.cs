@@ -10,11 +10,11 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class ReviewService : IReviewService
 {
-    private readonly IReviewRepository _reviewRepository;
-    private readonly IMovieRepository _movieRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IBattleRepository _battleRepository;
-    private readonly IPointService _pointService;
+    private readonly IReviewRepository reviewRepository;
+    private readonly IMovieRepository movieRepository;
+    private readonly IUserRepository userRepository;
+    private readonly IBattleRepository battleRepository;
+    private readonly IPointService pointService;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ReviewService"/>.
@@ -31,11 +31,11 @@ public class ReviewService : IReviewService
         IBattleRepository battleRepository,
         IPointService pointService)
     {
-        _reviewRepository = reviewRepository;
-        _movieRepository = movieRepository;
-        _userRepository = userRepository;
-        _battleRepository = battleRepository;
-        _pointService = pointService;
+        this.reviewRepository = reviewRepository;
+        this.movieRepository = movieRepository;
+        this.userRepository = userRepository;
+        this.battleRepository = battleRepository;
+        this.pointService = pointService;
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class ReviewService : IReviewService
     /// <returns>A list of reviews for the movie.</returns>
     public async Task<List<Review>> GetReviewsForMovie(int movieId)
     {
-        var reviews = _reviewRepository.GetAll()
+        var reviews = reviewRepository.GetAll()
             .Where(r => r.Movie?.MovieId == movieId && r.StarRating <= 5)
             .OrderByDescending(r => r.CreatedAt)
             .ToList();
@@ -64,25 +64,28 @@ public class ReviewService : IReviewService
     /// <exception cref="InvalidOperationException">Thrown on duplicate review or invalid input.</exception>
     public async Task<Review> AddReview(int userId, int movieId, float rating, string content)
     {
-        var user = _userRepository.GetById(userId)
+        var user = userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
-        var movie = _movieRepository.GetById(movieId)
+        var movie = movieRepository.GetById(movieId)
             ?? throw new InvalidOperationException("Movie not found.");
 
         // Validate: one review per user per movie
-        var existing = _reviewRepository.GetAll()
+        var existing = reviewRepository.GetAll()
             .Any(r => r.User?.UserId == userId && r.Movie?.MovieId == movieId);
         if (existing)
+        {
             throw new InvalidOperationException("User has already reviewed this movie.");
-
+        }
         // Validate rating range (0-5, 0.5 increments)
         if (rating < 0 || rating > 5 || (rating * 2) % 1 != 0)
+        {
             throw new InvalidOperationException("Rating must be between 0 and 5 in 0.5 increments.");
-
+        }
         // Validate content length
         if (!string.IsNullOrEmpty(content) && content.Length > 2000)
+        {
             throw new InvalidOperationException("Review content must not exceed 2000 characters.");
-
+        }
 
         var review = new Review
         {
@@ -94,18 +97,18 @@ public class ReviewService : IReviewService
             IsExtraReview = false
         };
 
-        _reviewRepository.Insert(review);
+        reviewRepository.Insert(review);
 
         // Recalculate average rating
         await RecalculateAverageRating(movieId);
 
         // Determine if movie is in an active battle
-        var isBattleMovie = _battleRepository.GetAll()
+        var isBattleMovie = battleRepository.GetAll()
             .Any(b => b.Status == "Active" &&
                       (b.FirstMovie?.MovieId == movieId || b.SecondMovie?.MovieId == movieId));
 
         // Award points
-        await _pointService.AddPoints(userId, movieId, isBattleMovie);
+        await pointService.AddPoints(userId, movieId, isBattleMovie);
 
         return review;
     }
@@ -118,18 +121,21 @@ public class ReviewService : IReviewService
     /// <param name="content">The new content.</param>
     public async Task UpdateReview(int reviewId, float rating, string content)
     {
-        var review = _reviewRepository.GetById(reviewId)
+        var review = reviewRepository.GetById(reviewId)
             ?? throw new InvalidOperationException("Review not found.");
 
         if (rating < 0 || rating > 5 || (rating * 2) % 1 != 0)
+        {
             throw new InvalidOperationException("Rating must be between 0 and 5 in 0.5 increments.");
+        }
 
         if (!string.IsNullOrEmpty(content) && content.Length > 2000)
+        {
             throw new InvalidOperationException("Review content must not exceed 2000 characters.");
-
+        }
         review.StarRating = rating;
         review.Content = content;
-        _reviewRepository.Update(review);
+        reviewRepository.Update(review);
 
         var movieId = review.Movie?.MovieId
             ?? throw new InvalidOperationException("Review movie is not available.");
@@ -142,12 +148,12 @@ public class ReviewService : IReviewService
     /// <param name="reviewId">The review identifier.</param>
     public async Task DeleteReview(int reviewId)
     {
-        var review = _reviewRepository.GetById(reviewId)
+        var review = reviewRepository.GetById(reviewId)
             ?? throw new InvalidOperationException("Review not found.");
 
         int movieId = review.Movie?.MovieId
             ?? throw new InvalidOperationException("Review movie is not available.");
-        _reviewRepository.Delete(review.ReviewId);
+        reviewRepository.Delete(review.ReviewId);
 
         await RecalculateAverageRating(movieId);
     }
@@ -172,13 +178,14 @@ public class ReviewService : IReviewService
         int soundRating, string soundText, int cinRating, string cinText,
         string mainExtraText)
     {
-        var review = _reviewRepository.GetById(reviewId)
+        var review = reviewRepository.GetById(reviewId)
             ?? throw new InvalidOperationException("Review not found.");
 
         // Validate main extra text length
         if (string.IsNullOrEmpty(mainExtraText) || mainExtraText.Length < 500 || mainExtraText.Length > 12000)
+        {
             throw new InvalidOperationException("Main extra text must be between 500 and 12000 characters.");
-
+        }
         // Validate category texts
         ValidateCategoryText(cgText, "CGI");
         ValidateCategoryText(actingText, "Acting");
@@ -206,7 +213,7 @@ public class ReviewService : IReviewService
         review.Content = mainExtraText;
         review.IsExtraReview = true;
 
-        _reviewRepository.Update(review);
+        reviewRepository.Update(review);
         await Task.CompletedTask;
     }
 
@@ -217,13 +224,14 @@ public class ReviewService : IReviewService
     /// <returns>The average star rating.</returns>
     public async Task<double> GetAverageRating(int movieId)
     {
-        var reviews = _reviewRepository.GetAll()
+        var reviews = reviewRepository.GetAll()
             .Where(r => r.Movie?.MovieId == movieId && r.StarRating <= 5)
             .ToList();
 
         if (reviews.Count == 0)
+        {
             return 0;
-
+        }
         return Math.Round(reviews.Average(r => r.StarRating), 1);
     }
 
@@ -232,27 +240,33 @@ public class ReviewService : IReviewService
     /// </summary>
     private async Task RecalculateAverageRating(int movieId)
     {
-        var movie = _movieRepository.GetById(movieId);
-        if (movie == null) return;
-
+        var movie = movieRepository.GetById(movieId);
+        if (movie == null)
+        {
+            return;
+        }
         var avg = await GetAverageRating(movieId);
         movie.AverageRating = avg;
-        _movieRepository.Update(movie);
+        movieRepository.Update(movie);
     }
 
     /// <summary>Validates a category text's length (50-2000 chars).</summary>
     private static void ValidateCategoryText(string text, string categoryName)
     {
         if (string.IsNullOrEmpty(text) || text.Length < 50 || text.Length > 2000)
+        {
             throw new InvalidOperationException(
                 $"{categoryName} text must be between 50 and 2000 characters.");
+        }
     }
 
     /// <summary>Validates a category rating is between 0 and 5.</summary>
     private static void ValidateCategoryRating(int rating, string categoryName)
     {
         if (rating < 0 || rating > 5)
+        {
             throw new InvalidOperationException(
                 $"{categoryName} rating must be between 0 and 5.");
+        }
     }
 }

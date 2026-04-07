@@ -8,25 +8,31 @@ namespace Tests.Unit.Services;
 
 internal class FakeUserStatsRepository : UserStatsRepository
 {
-    private readonly List<UserStats> _store = new();
-    private int _nextId = 1;
+    private readonly List<UserStats> store = new ();
+    private int nextId = 1;
 
-    public FakeUserStatsRepository() : base(string.Empty) { }
+    public FakeUserStatsRepository() : base(string.Empty)
+    {
+    }
 
     public override UserStats? GetByUserId(int userId) =>
-        _store.FirstOrDefault(s => s.User?.UserId == userId);
+        store.FirstOrDefault(s => s.User?.UserId == userId);
 
     public override int Insert(UserStats stats)
     {
-        stats.StatsId = _nextId++;
-        _store.Add(stats);
+        stats.StatsId = nextId++;
+        store.Add(stats);
         return stats.StatsId;
     }
 
     public override bool Update(UserStats stats)
     {
-        var existing = _store.FirstOrDefault(s => s.StatsId == stats.StatsId);
-        if (existing is null) return false;
+        var existing = store.FirstOrDefault(s => s.StatsId == stats.StatsId);
+        if (existing is null)
+        {
+            return false;
+        }
+
         existing.TotalPoints = stats.TotalPoints;
         existing.WeeklyScore = stats.WeeklyScore;
         return true;
@@ -35,42 +41,42 @@ internal class FakeUserStatsRepository : UserStatsRepository
 
 internal class FakeUserRepository : UserRepository
 {
-    private readonly Dictionary<int, User> _store;
+    private readonly Dictionary<int, User> store;
 
     public FakeUserRepository(params User[] users) : base(string.Empty)
     {
-        _store = users.ToDictionary(u => u.UserId);
+        store = users.ToDictionary(u => u.UserId);
     }
 
     public override User? GetById(int id) =>
-        _store.TryGetValue(id, out var u) ? u : null;
+        store.TryGetValue(id, out var u) ? u : null;
 }
 
 internal class FakeMovieRepository : MovieRepository
 {
-    private readonly Dictionary<int, Movie> _store;
+    private readonly Dictionary<int, Movie> store;
 
     public FakeMovieRepository(params Movie[] movies) : base(string.Empty)
     {
-        _store = movies.ToDictionary(m => m.MovieId);
+        store = movies.ToDictionary(m => m.MovieId);
     }
 
     public override Movie? GetById(int id) =>
-        _store.TryGetValue(id, out var m) ? m : null;
+        store.TryGetValue(id, out var m) ? m : null;
 
     public override bool Update(Movie movie)
     {
-        _store[movie.MovieId] = movie;
+        store[movie.MovieId] = movie;
         return true;
     }
 }
 
 public class PointServiceTests
 {
-    private static User DefaultUser(int id = 1) => new() { UserId = id };
+    private static User DefaultUser(int id = 1) => new () { UserId = id };
 
     private static Movie DefaultMovie(int id = 10, double avgRating = 3.0) =>
-        new() { MovieId = id, AverageRating = avgRating };
+        new () { MovieId = id, AverageRating = avgRating };
 
     private PointService CreateSut(
         FakeUserStatsRepository? statsRepo = null,

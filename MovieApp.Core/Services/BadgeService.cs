@@ -10,10 +10,10 @@ namespace MovieApp.Core.Services;
 /// </summary>
 public class BadgeService : IBadgeService
 {
-    private readonly IUserBadgeRepository _userBadgeRepository;
-    private readonly IBadgeRepository _badgeRepository;
-    private readonly IReviewRepository _reviewRepository;
-    private readonly IMovieRepository _movieRepository;
+    private readonly IUserBadgeRepository userBadgeRepository;
+    private readonly IBadgeRepository badgeRepository;
+    private readonly IReviewRepository reviewRepository;
+    private readonly IMovieRepository movieRepository;
 
     /// <summary>
     /// Initializes a new instance of <see cref="BadgeService"/>.
@@ -28,10 +28,10 @@ public class BadgeService : IBadgeService
         IReviewRepository reviewRepository,
         IMovieRepository movieRepository)
     {
-        _userBadgeRepository = userBadgeRepository;
-        _badgeRepository = badgeRepository;
-        _reviewRepository = reviewRepository;
-        _movieRepository = movieRepository;
+        this.userBadgeRepository = userBadgeRepository;
+        this.badgeRepository = badgeRepository;
+        this.reviewRepository = reviewRepository;
+        this.movieRepository = movieRepository;
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public class BadgeService : IBadgeService
     /// <returns>A list of badges the user has earned.</returns>
     public async Task<List<Badge>> GetUserBadges(int userId)
     {
-        var badges = _userBadgeRepository.GetAll()
+        var badges = userBadgeRepository.GetAll()
             .Where(ub => ub.User?.UserId == userId && ub.Badge is not null)
             .Select(ub => ub.Badge!)
             .ToList();
@@ -55,7 +55,7 @@ public class BadgeService : IBadgeService
     /// <returns>A list of all badges.</returns>
     public async Task<List<Badge>> GetAllBadges()
     {
-        return await Task.FromResult(_badgeRepository.GetAll());
+        return await Task.FromResult(badgeRepository.GetAll());
     }
 
     /// <summary>
@@ -64,17 +64,17 @@ public class BadgeService : IBadgeService
     /// <param name="userId">The user identifier.</param>
     public async Task CheckAndAwardBadges(int userId)
     {
-        var existingBadgeIds = _userBadgeRepository.GetAll()
+        var existingBadgeIds = userBadgeRepository.GetAll()
             .Where(ub => ub.User?.UserId == userId && ub.Badge is not null)
             .Select(ub => ub.Badge!.BadgeId)
             .ToList();
 
-        var allBadges = _badgeRepository.GetAll();
+        var allBadges = badgeRepository.GetAll();
 
-        var userReviews = _reviewRepository.GetAll()
+        var userReviews = reviewRepository.GetAll()
             .Where(r => r.User?.UserId == userId)
             .ToList();
-        var moviesById = _movieRepository.GetAll().ToDictionary(m => m.MovieId);
+        var moviesById = movieRepository.GetAll().ToDictionary(m => m.MovieId);
 
         int totalReviews = userReviews.Count;
         int extraReviews = userReviews.Count(r => r.IsExtraReview);
@@ -98,14 +98,16 @@ public class BadgeService : IBadgeService
         foreach (var badge in allBadges)
         {
             if (existingBadgeIds.Contains(badge.BadgeId))
+            {
                 continue;
+            }
 
             bool shouldAward = badge.Name switch
             {
-                "The Snob"         => extraReviews >= 10,
-                "Why so serious?"  => fullyCompletedExtraReviews >= 50,
-                "The Joker"        => comedyPercentage > 70,
-                "The Godfather I"  => totalReviews >= 100,
+                "The Snob" => extraReviews >= 10,
+                "Why so serious?" => fullyCompletedExtraReviews >= 50,
+                "The Joker" => comedyPercentage > 70,
+                "The Godfather I" => totalReviews >= 100,
                 "The Godfather II" => totalReviews >= 200,
                 "The Godfather III" => totalReviews >= 300,
                 _ => false
@@ -113,7 +115,7 @@ public class BadgeService : IBadgeService
 
             if (shouldAward)
             {
-                _userBadgeRepository.Insert(new UserBadge
+                userBadgeRepository.Insert(new UserBadge
                 {
                     User = new User { UserId = userId },
                     Badge = new Badge { BadgeId = badge.BadgeId }

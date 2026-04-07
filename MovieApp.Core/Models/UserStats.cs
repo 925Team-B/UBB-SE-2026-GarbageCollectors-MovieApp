@@ -17,6 +17,7 @@ public class UserStats
     public int WeeklyScore { get; set; }
 
     // Navigation properties
+
     /// <summary>Gets or sets the associated user.</summary>
     public User? User { get; set; }
 }

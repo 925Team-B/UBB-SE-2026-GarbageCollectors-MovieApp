@@ -7,18 +7,18 @@ namespace MovieApp.Core.Repositories;
 
 public class BadgeRepository : IBadgeRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     public BadgeRepository(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     public List<Badge> GetAll()
     {
         var badges = new List<Badge>();
 
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("SELECT BadgeId, Name, CriteriaValue FROM Badge", connection);
 
         connection.Open();
@@ -38,7 +38,7 @@ public class BadgeRepository : IBadgeRepository
 
     public Badge? GetById(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("SELECT BadgeId, Name, CriteriaValue FROM Badge WHERE BadgeId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);
@@ -60,7 +60,7 @@ public class BadgeRepository : IBadgeRepository
 
     public int Insert(Badge badge)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             INSERT INTO Badge (Name, CriteriaValue)
             VALUES (@name, @criteriaValue);
@@ -70,14 +70,14 @@ public class BadgeRepository : IBadgeRepository
         cmd.Parameters.AddWithValue("@criteriaValue", badge.CriteriaValue);
 
         connection.Open();
-        var id = (int)cmd.ExecuteScalar()!;
+        var id = (int)cmd.ExecuteScalar() !;
         badge.BadgeId = id;
         return id;
     }
 
     public bool Update(Badge badge)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand(@"
             UPDATE Badge
             SET Name = @name,
@@ -94,7 +94,7 @@ public class BadgeRepository : IBadgeRepository
 
     public bool Delete(int id)
     {
-        using var connection = new SqlConnection(_connectionString);
+        using var connection = new SqlConnection(connectionString);
         using var cmd = new SqlCommand("DELETE FROM Badge WHERE BadgeId = @id", connection);
 
         cmd.Parameters.AddWithValue("@id", id);

@@ -9,5 +9,4 @@ public interface IReviewRepository
     public int Insert(Review review);
     public bool Update(Review review);
     public bool Delete(int id);
-    
 }

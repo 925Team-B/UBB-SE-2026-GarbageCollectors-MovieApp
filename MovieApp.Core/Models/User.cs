@@ -11,6 +11,7 @@ public class User
     public int UserId { get; set; }
 
     // Navigation properties
+
     /// <summary>Gets or sets the collection of reviews written by this user.</summary>
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
 

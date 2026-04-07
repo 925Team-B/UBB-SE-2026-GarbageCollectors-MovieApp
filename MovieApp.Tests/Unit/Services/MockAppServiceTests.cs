@@ -11,23 +11,24 @@ namespace MovieApp.Tests.Unit.Services;
 /// </summary>
 public class MockAppServiceTests : IDisposable
 {
-    private readonly string _filePath;
+    private readonly string filePath;
 
     public MockAppServiceTests()
     {
-        _filePath = Path.Combine(Path.GetTempPath(), $"MockAppService_{Guid.NewGuid()}.json");
+        filePath = Path.Combine(Path.GetTempPath(), $"MockAppService_{Guid.NewGuid()}.json");
     }
 
     public void Dispose()
     {
-        if (File.Exists(_filePath))
-            File.Delete(_filePath);
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
     }
 
-    private MockAppService CreateService() => new MockAppService(_filePath);
+    private MockAppService CreateService() => new MockAppService(filePath);
 
     // ==================== ICatalogService ====================
-
     [Fact]
     public async Task GetAllMovies_WithMoviesInRepository_ReturnsMoviesOrderedByTitle()
     {
@@ -98,7 +99,6 @@ public class MockAppServiceTests : IDisposable
     }
 
     // ==================== IReviewService ====================
-
     [Fact]
     public async Task AddReview_WhenValidRatingAndContent_AddsReviewAndUpdatesMovieAverageRating()
     {
@@ -167,7 +167,9 @@ public class MockAppServiceTests : IDisposable
             }
         }
         if (movieWithNoReviews is null)
+        {
             return; // skip if all have reviews in default data
+        }
 
         var avg = await sut.GetAverageRating(movieWithNoReviews.MovieId);
 
@@ -175,7 +177,6 @@ public class MockAppServiceTests : IDisposable
     }
 
     // ==================== ICommentService ====================
-
     [Fact]
     public async Task AddComment_WhenValidInputs_AddsCommentToMovie()
     {
@@ -230,7 +231,6 @@ public class MockAppServiceTests : IDisposable
     }
 
     // ==================== IBattleService ====================
-
     [Fact]
     public async Task GetActiveBattle_WhenActiveBattleExists_ReturnsActiveBattle()
     {
@@ -266,7 +266,6 @@ public class MockAppServiceTests : IDisposable
     }
 
     // ==================== IPointService ====================
-
     [Fact]
     public async Task GetUserStats_WhenUserExists_ReturnsStats()
     {
@@ -286,7 +285,6 @@ public class MockAppServiceTests : IDisposable
     }
 
     // ==================== IBadgeService ====================
-
     [Fact]
     public async Task GetAllBadges_WithBadgesInRepository_ReturnsNonEmptyList()
     {
