@@ -8,37 +8,37 @@ namespace Tests.Integration.Services;
 
 public class ReviewServiceIntegrationTests : IntegrationTestBase
 {
-    private readonly ReviewRepository _reviewRepository;
-    private readonly MovieRepository _movieRepository;
-    private readonly UserRepository _userRepository;
-    private readonly BattleRepository _battleRepository;
-    private readonly Mock<IPointService> _pointServiceMock;
-    private readonly ReviewService _sut;
+    private readonly ReviewRepository reviewRepository;
+    private readonly MovieRepository movieRepository;
+    private readonly UserRepository userRepository;
+    private readonly BattleRepository battleRepository;
+    private readonly Mock<IPointService> pointServiceMock;
+    private readonly ReviewService sut;
 
     public ReviewServiceIntegrationTests()
     {
-        _reviewRepository = new ReviewRepository(ConnectionString);
-        _movieRepository = new MovieRepository(ConnectionString);
-        _userRepository = new UserRepository(ConnectionString);
-        _battleRepository = new BattleRepository(ConnectionString);
-        _pointServiceMock = new Mock<IPointService>();
-        _sut = new ReviewService(_reviewRepository, _movieRepository, _userRepository, _battleRepository, _pointServiceMock.Object);
+        reviewRepository = new ReviewRepository(ConnectionString);
+        movieRepository = new MovieRepository(ConnectionString);
+        userRepository = new UserRepository(ConnectionString);
+        battleRepository = new BattleRepository(ConnectionString);
+        pointServiceMock = new Mock<IPointService>();
+        sut = new ReviewService(reviewRepository, movieRepository, userRepository, battleRepository, pointServiceMock.Object);
 
         SeedData();
     }
 
     private void SeedData()
     {
-        _userRepository.Insert(new User());
-        _movieRepository.Insert(new Movie { Title = "Test Movie", Year = 2000, Genre = "Drama", PosterUrl = "", AverageRating = 0 });
+        userRepository.Insert(new User());
+        movieRepository.Insert(new Movie { Title = "Test Movie", Year = 2000, Genre = "Drama", PosterUrl = string.Empty, AverageRating = 0 });
     }
 
-    private static string ValidContent(int length = 100) => new('x', length);
+    private static string ValidContent(int length = 100) => new ('x', length);
 
     [Fact]
     public async Task AddReview_PersistsReview_WhenInputIsValid()
     {
-        var result = await _sut.AddReview(1, 1, 4.0f, ValidContent());
+        var result = await sut.AddReview(1, 1, 4.0f, ValidContent());
 
         Assert.NotNull(result);
         Assert.True(result.ReviewId > 0);
@@ -47,9 +47,9 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task AddReview_UpdatesMovieAverageRating_WhenReviewIsAdded()
     {
-        await _sut.AddReview(1, 1, 4.0f, ValidContent());
+        await sut.AddReview(1, 1, 4.0f, ValidContent());
 
-        var movie = _movieRepository.GetById(1);
+        var movie = movieRepository.GetById(1);
         Assert.NotEqual(0, movie!.AverageRating);
     }
 
@@ -57,31 +57,31 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
     public async Task AddReview_ThrowsInvalidOperationException_WhenUserDoesNotExist()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.AddReview(999, 1, 4.0f, ValidContent()));
+            sut.AddReview(999, 1, 4.0f, ValidContent()));
     }
 
     [Fact]
     public async Task AddReview_ThrowsInvalidOperationException_WhenMovieDoesNotExist()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.AddReview(1, 999, 4.0f, ValidContent()));
+            sut.AddReview(1, 999, 4.0f, ValidContent()));
     }
 
     [Fact]
     public async Task AddReview_ThrowsInvalidOperationException_WhenUserAlreadyReviewedMovie()
     {
-        await _sut.AddReview(1, 1, 4.0f, ValidContent());
+        await sut.AddReview(1, 1, 4.0f, ValidContent());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.AddReview(1, 1, 3.0f, ValidContent()));
+            sut.AddReview(1, 1, 3.0f, ValidContent()));
     }
 
     [Fact]
     public async Task GetReviewsForMovie_ReturnsPersistedReviews()
     {
-        await _sut.AddReview(1, 1, 4.0f, ValidContent());
+        await sut.AddReview(1, 1, 4.0f, ValidContent());
 
-        var result = await _sut.GetReviewsForMovie(1);
+        var result = await sut.GetReviewsForMovie(1);
 
         Assert.Single(result);
     }
@@ -89,7 +89,7 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task GetReviewsForMovie_ReturnsEmpty_WhenNoReviewsExist()
     {
-        var result = await _sut.GetReviewsForMovie(1);
+        var result = await sut.GetReviewsForMovie(1);
 
         Assert.Empty(result);
     }
@@ -97,11 +97,11 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task UpdateReview_PersistsChanges_WhenReviewExists()
     {
-        var review = await _sut.AddReview(1, 1, 4.0f, ValidContent());
+        var review = await sut.AddReview(1, 1, 4.0f, ValidContent());
 
-        await _sut.UpdateReview(review.ReviewId, 2.0f, ValidContent(200));
+        await sut.UpdateReview(review.ReviewId, 2.0f, ValidContent(200));
 
-        var updated = _reviewRepository.GetById(review.ReviewId);
+        var updated = reviewRepository.GetById(review.ReviewId);
         Assert.Equal(2.0f, updated!.StarRating);
     }
 
@@ -109,34 +109,34 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
     public async Task UpdateReview_ThrowsInvalidOperationException_WhenReviewDoesNotExist()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.UpdateReview(999, 3.0f, ValidContent()));
+            sut.UpdateReview(999, 3.0f, ValidContent()));
     }
 
     [Fact]
     public async Task DeleteReview_RemovesReview_WhenReviewExists()
     {
-        var review = await _sut.AddReview(1, 1, 4.0f, ValidContent());
+        var review = await sut.AddReview(1, 1, 4.0f, ValidContent());
 
-        await _sut.DeleteReview(review.ReviewId);
+        await sut.DeleteReview(review.ReviewId);
 
-        Assert.Null(_reviewRepository.GetById(review.ReviewId));
+        Assert.Null(reviewRepository.GetById(review.ReviewId));
     }
 
     [Fact]
     public async Task DeleteReview_ThrowsInvalidOperationException_WhenReviewDoesNotExist()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.DeleteReview(999));
+            sut.DeleteReview(999));
     }
 
     [Fact]
     public async Task GetAverageRating_ReturnsCorrectAverage_ForMultipleReviews()
     {
-        _userRepository.Insert(new User());
-        await _sut.AddReview(1, 1, 2.0f, ValidContent());
-        await _sut.AddReview(2, 1, 4.0f, ValidContent());
+        userRepository.Insert(new User());
+        await sut.AddReview(1, 1, 2.0f, ValidContent());
+        await sut.AddReview(2, 1, 4.0f, ValidContent());
 
-        var result = await _sut.GetAverageRating(1);
+        var result = await sut.GetAverageRating(1);
 
         Assert.Equal(3.0, result);
     }
@@ -144,7 +144,7 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task GetAverageRating_ReturnsZero_WhenNoReviewsExist()
     {
-        var result = await _sut.GetAverageRating(1);
+        var result = await sut.GetAverageRating(1);
 
         Assert.Equal(0, result);
     }
@@ -152,9 +152,9 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task SubmitExtraReview_SetsIsExtraReviewToTrue_WhenInputIsValid()
     {
-        var review = await _sut.AddReview(1, 1, 4.0f, ValidContent());
+        var review = await sut.AddReview(1, 1, 4.0f, ValidContent());
 
-        await _sut.SubmitExtraReview(
+        await sut.SubmitExtraReview(
             review.ReviewId,
             3, ValidContent(60),
             3, ValidContent(60),
@@ -163,40 +163,40 @@ public class ReviewServiceIntegrationTests : IntegrationTestBase
             3, ValidContent(60),
             ValidContent(600));
 
-        var updated = _reviewRepository.GetById(review.ReviewId);
+        var updated = reviewRepository.GetById(review.ReviewId);
         Assert.True(updated!.IsExtraReview);
     }
 }
 
 public class PointServiceIntegrationTests : IntegrationTestBase
 {
-    private readonly UserStatsRepository _userStatsRepository;
-    private readonly UserRepository _userRepository;
-    private readonly MovieRepository _movieRepository;
-    private readonly Mock<IBadgeService> _badgeServiceMock;
-    private readonly PointService _sut;
+    private readonly UserStatsRepository userStatsRepository;
+    private readonly UserRepository userRepository;
+    private readonly MovieRepository movieRepository;
+    private readonly Mock<IBadgeService> badgeServiceMock;
+    private readonly PointService sut;
 
     public PointServiceIntegrationTests()
     {
-        _userStatsRepository = new UserStatsRepository(ConnectionString);
-        _userRepository = new UserRepository(ConnectionString);
-        _movieRepository = new MovieRepository(ConnectionString);
-        _badgeServiceMock = new Mock<IBadgeService>();
-        _sut = new PointService(_userStatsRepository, _userRepository, _movieRepository, _badgeServiceMock.Object);
+        userStatsRepository = new UserStatsRepository(ConnectionString);
+        userRepository = new UserRepository(ConnectionString);
+        movieRepository = new MovieRepository(ConnectionString);
+        badgeServiceMock = new Mock<IBadgeService>();
+        sut = new PointService(userStatsRepository, userRepository, movieRepository, badgeServiceMock.Object);
 
         SeedData();
     }
 
     private void SeedData()
     {
-        _userRepository.Insert(new User());
-        _movieRepository.Insert(new Movie { Title = "Test Movie", Year = 2000, Genre = "Drama", PosterUrl = "", AverageRating = 4.0 });
+        userRepository.Insert(new User());
+        movieRepository.Insert(new Movie { Title = "Test Movie", Year = 2000, Genre = "Drama", PosterUrl = string.Empty, AverageRating = 4.0 });
     }
 
     [Fact]
     public async Task GetUserStats_CreatesStats_WhenUserExistsButStatsDoNot()
     {
-        var result = await _sut.GetUserStats(1);
+        var result = await sut.GetUserStats(1);
 
         Assert.NotNull(result);
         Assert.Equal(0, result.TotalPoints);
@@ -205,10 +205,10 @@ public class PointServiceIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task GetUserStats_ReturnsExistingStats_WhenStatsAlreadyExist()
     {
-        await _sut.GetUserStats(1);
-        await _sut.AddPoints(1, 1, isBattleMovie: false);
+        await sut.GetUserStats(1);
+        await sut.AddPoints(1, 1, isBattleMovie: false);
 
-        var result = await _sut.GetUserStats(1);
+        var result = await sut.GetUserStats(1);
 
         Assert.Equal(2, result.TotalPoints);
     }
@@ -217,53 +217,53 @@ public class PointServiceIntegrationTests : IntegrationTestBase
     public async Task GetUserStats_ThrowsInvalidOperationException_WhenUserDoesNotExist()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.GetUserStats(999));
+            sut.GetUserStats(999));
     }
 
     [Fact]
     public async Task AddPoints_PersistsPoints_WhenMovieRatingIsAbove3Point5()
     {
-        await _sut.AddPoints(1, 1, isBattleMovie: false);
+        await sut.AddPoints(1, 1, isBattleMovie: false);
 
-        var stats = await _sut.GetUserStats(1);
+        var stats = await sut.GetUserStats(1);
         Assert.Equal(2, stats.TotalPoints);
     }
 
     [Fact]
     public async Task AddPoints_AddsBattleBonus_WhenIsBattleMovieIsTrue()
     {
-        await _sut.AddPoints(1, 1, isBattleMovie: true);
+        await sut.AddPoints(1, 1, isBattleMovie: true);
 
-        var stats = await _sut.GetUserStats(1);
+        var stats = await sut.GetUserStats(1);
         Assert.Equal(7, stats.TotalPoints);
     }
 
     [Fact]
     public async Task DeductPoints_PersistsDeduction_WhenUserHasPoints()
     {
-        await _sut.AddPoints(1, 1, isBattleMovie: false);
-        await _sut.DeductPoints(1, 1);
+        await sut.AddPoints(1, 1, isBattleMovie: false);
+        await sut.DeductPoints(1, 1);
 
-        var stats = await _sut.GetUserStats(1);
+        var stats = await sut.GetUserStats(1);
         Assert.Equal(1, stats.TotalPoints);
     }
 
     [Fact]
     public async Task DeductPoints_ClampsToZero_WhenDeductionExceedsTotal()
     {
-        await _sut.DeductPoints(1, 100);
+        await sut.DeductPoints(1, 100);
 
-        var stats = await _sut.GetUserStats(1);
+        var stats = await sut.GetUserStats(1);
         Assert.Equal(0, stats.TotalPoints);
     }
 
     [Fact]
     public async Task FreezePoints_DeductsPoints_WhenUserHasSufficientPoints()
     {
-        await _sut.AddPoints(1, 1, isBattleMovie: true);
-        await _sut.FreezePoints(1, 5);
+        await sut.AddPoints(1, 1, isBattleMovie: true);
+        await sut.FreezePoints(1, 5);
 
-        var stats = await _sut.GetUserStats(1);
+        var stats = await sut.GetUserStats(1);
         Assert.Equal(2, stats.TotalPoints);
     }
 
@@ -271,25 +271,25 @@ public class PointServiceIntegrationTests : IntegrationTestBase
     public async Task FreezePoints_ThrowsInvalidOperationException_WhenPointsAreInsufficient()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.FreezePoints(1, 100));
+            sut.FreezePoints(1, 100));
     }
 
     [Fact]
     public async Task RefundPoints_IncreasesPoints_BySpecifiedAmount()
     {
-        await _sut.RefundPoints(1, 10);
+        await sut.RefundPoints(1, 10);
 
-        var stats = await _sut.GetUserStats(1);
+        var stats = await sut.GetUserStats(1);
         Assert.Equal(10, stats.TotalPoints);
     }
 
     [Fact]
     public async Task UpdateWeeklyScore_SetsWeeklyScore_ToCurrentTotalPoints()
     {
-        await _sut.AddPoints(1, 1, isBattleMovie: false);
-        await _sut.UpdateWeeklyScore(1);
+        await sut.AddPoints(1, 1, isBattleMovie: false);
+        await sut.UpdateWeeklyScore(1);
 
-        var stats = await _sut.GetUserStats(1);
+        var stats = await sut.GetUserStats(1);
         Assert.Equal(stats.TotalPoints, stats.WeeklyScore);
     }
 }

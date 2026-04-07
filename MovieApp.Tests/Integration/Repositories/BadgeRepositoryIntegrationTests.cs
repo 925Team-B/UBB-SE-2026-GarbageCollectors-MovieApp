@@ -1,34 +1,34 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class BadgeRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly BadgeRepository _repo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly BadgeRepository repo;
 
         public BadgeRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_Badge_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_Badge_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new BadgeRepository(_connectionString);
+            repo = new BadgeRepository(connectionString);
             ClearBadgeTable();
         }
 
         private void ClearBadgeTable()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM UserBadge", conn).ExecuteNonQuery();
@@ -44,10 +44,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -62,11 +62,11 @@ END", conn);
                 CriteriaValue = 10
             };
 
-            int id = _repo.Insert(badge);
+            int id = repo.Insert(badge);
 
             Assert.True(id > 0);
 
-            var insertedBadge = _repo.GetById(id);
+            var insertedBadge = repo.GetById(id);
             Assert.NotNull(insertedBadge);
             Assert.Equal("Test Badge", insertedBadge!.Name);
             Assert.Equal(10, insertedBadge.CriteriaValue);
@@ -75,19 +75,19 @@ END", conn);
         [Fact]
         public void GetAll_WhenBadgesExist_ReturnsBadges()
         {
-            _repo.Insert(new Badge
+            repo.Insert(new Badge
             {
                 Name = "Badge 1",
                 CriteriaValue = 5
             });
 
-            _repo.Insert(new Badge
+            repo.Insert(new Badge
             {
                 Name = "Badge 2",
                 CriteriaValue = 15
             });
 
-            var badges = _repo.GetAll();
+            var badges = repo.GetAll();
 
             Assert.Equal(2, badges.Count);
         }
@@ -101,9 +101,9 @@ END", conn);
                 CriteriaValue = 20
             };
 
-            int id = _repo.Insert(badge);
+            int id = repo.Insert(badge);
 
-            var result = _repo.GetById(id);
+            var result = repo.GetById(id);
 
             Assert.NotNull(result);
             Assert.Equal(id, result!.BadgeId);
@@ -114,7 +114,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingBadge_ReturnsNull()
         {
-            var result = _repo.GetById(999999);
+            var result = repo.GetById(999999);
 
             Assert.Null(result);
         }
@@ -128,17 +128,17 @@ END", conn);
                 CriteriaValue = 25
             };
 
-            int id = _repo.Insert(badge);
+            int id = repo.Insert(badge);
 
             badge.BadgeId = id;
             badge.Name = "New Badge";
             badge.CriteriaValue = 50;
 
-            bool updated = _repo.Update(badge);
+            bool updated = repo.Update(badge);
 
             Assert.True(updated);
 
-            var updatedBadge = _repo.GetById(id);
+            var updatedBadge = repo.GetById(id);
             Assert.NotNull(updatedBadge);
             Assert.Equal("New Badge", updatedBadge!.Name);
             Assert.Equal(50, updatedBadge.CriteriaValue);
@@ -154,7 +154,7 @@ END", conn);
                 CriteriaValue = 99
             };
 
-            bool updated = _repo.Update(badge);
+            bool updated = repo.Update(badge);
 
             Assert.False(updated);
         }
@@ -168,18 +168,18 @@ END", conn);
                 CriteriaValue = 30
             };
 
-            int id = _repo.Insert(badge);
+            int id = repo.Insert(badge);
 
-            bool deleted = _repo.Delete(id);
+            bool deleted = repo.Delete(id);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(id));
+            Assert.Null(repo.GetById(id));
         }
 
         [Fact]
         public void Delete_NonExistingBadge_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999999);
+            bool deleted = repo.Delete(999999);
 
             Assert.False(deleted);
         }

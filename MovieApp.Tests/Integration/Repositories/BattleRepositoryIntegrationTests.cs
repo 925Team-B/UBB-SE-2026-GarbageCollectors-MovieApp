@@ -1,37 +1,37 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class BattleRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly BattleRepository _repo;
-        private readonly MovieRepository _movieRepo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly BattleRepository repo;
+        private readonly MovieRepository movieRepo;
 
         public BattleRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_Battle_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_Battle_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new BattleRepository(_connectionString);
-            _movieRepo = new MovieRepository(_connectionString);
+            repo = new BattleRepository(connectionString);
+            movieRepo = new MovieRepository(connectionString);
 
             ClearBattleTables();
         }
 
         private void ClearBattleTables()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM Bet", conn).ExecuteNonQuery();
@@ -47,12 +47,12 @@ namespace MovieApp.Tests.Integration.Repositories
             {
                 Title = title,
                 Year = year,
-                PosterUrl = title.Replace(" ", "") + ".jpg",
+                PosterUrl = title.Replace(" ", string.Empty) + ".jpg",
                 Genre = genre,
                 AverageRating = rating
             };
 
-            int id = _movieRepo.Insert(movie);
+            int id = movieRepo.Insert(movie);
             movie.MovieId = id;
             return movie;
         }
@@ -66,10 +66,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -92,11 +92,11 @@ END", conn);
                 Status = "Active"
             };
 
-            int id = _repo.Insert(battle);
+            int id = repo.Insert(battle);
 
             Assert.True(id > 0);
 
-            var insertedBattle = _repo.GetById(id);
+            var insertedBattle = repo.GetById(id);
             Assert.NotNull(insertedBattle);
             Assert.Equal(id, insertedBattle!.BattleId);
             Assert.Equal(firstMovie.MovieId, insertedBattle.FirstMovie!.MovieId);
@@ -120,7 +120,7 @@ END", conn);
                 Status = "Pending"
             };
 
-            Assert.Throws<InvalidOperationException>(() => _repo.Insert(battle));
+            Assert.Throws<InvalidOperationException>(() => repo.Insert(battle));
         }
 
         [Fact]
@@ -130,7 +130,7 @@ END", conn);
             var secondMovie = CreateMovie("Movie B", 2021, "Drama", 8.0);
             var thirdMovie = CreateMovie("Movie C", 2022, "Sci-Fi", 8.3);
 
-            _repo.Insert(new Battle
+            repo.Insert(new Battle
             {
                 FirstMovie = firstMovie,
                 SecondMovie = secondMovie,
@@ -141,7 +141,7 @@ END", conn);
                 Status = "Active"
             });
 
-            _repo.Insert(new Battle
+            repo.Insert(new Battle
             {
                 FirstMovie = secondMovie,
                 SecondMovie = thirdMovie,
@@ -152,7 +152,7 @@ END", conn);
                 Status = "Pending"
             });
 
-            var battles = _repo.GetAll();
+            var battles = repo.GetAll();
 
             Assert.Equal(2, battles.Count);
         }
@@ -174,9 +174,9 @@ END", conn);
                 Status = "Finished"
             };
 
-            int id = _repo.Insert(battle);
+            int id = repo.Insert(battle);
 
-            var result = _repo.GetById(id);
+            var result = repo.GetById(id);
 
             Assert.NotNull(result);
             Assert.Equal(id, result!.BattleId);
@@ -188,7 +188,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingBattle_ReturnsNull()
         {
-            var result = _repo.GetById(999999);
+            var result = repo.GetById(999999);
 
             Assert.Null(result);
         }
@@ -211,7 +211,7 @@ END", conn);
                 Status = "Pending"
             };
 
-            int id = _repo.Insert(battle);
+            int id = repo.Insert(battle);
 
             battle.BattleId = id;
             battle.SecondMovie = thirdMovie;
@@ -219,11 +219,11 @@ END", conn);
             battle.Status = "Active";
             battle.EndDate = new DateTime(2025, 4, 10);
 
-            bool updated = _repo.Update(battle);
+            bool updated = repo.Update(battle);
 
             Assert.True(updated);
 
-            var updatedBattle = _repo.GetById(id);
+            var updatedBattle = repo.GetById(id);
             Assert.NotNull(updatedBattle);
             Assert.Equal(thirdMovie.MovieId, updatedBattle!.SecondMovie!.MovieId);
             Assert.Equal(9.0, updatedBattle.InitialRatingSecondMovie);
@@ -249,7 +249,7 @@ END", conn);
                 Status = "Pending"
             };
 
-            bool updated = _repo.Update(battle);
+            bool updated = repo.Update(battle);
 
             Assert.False(updated);
         }
@@ -271,18 +271,18 @@ END", conn);
                 Status = "Pending"
             };
 
-            int id = _repo.Insert(battle);
+            int id = repo.Insert(battle);
 
-            bool deleted = _repo.Delete(id);
+            bool deleted = repo.Delete(id);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(id));
+            Assert.Null(repo.GetById(id));
         }
 
         [Fact]
         public void Delete_NonExistingBattle_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999999);
+            bool deleted = repo.Delete(999999);
 
             Assert.False(deleted);
         }

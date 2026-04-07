@@ -8,7 +8,6 @@ namespace MovieApp.Tests.Integration.Repositories
     {
         private const string ConnectionString =
         "Server=.\\SQLEXPRESS;Database=MovieAppTestDb;Trusted_Connection=True;TrustServerCertificate=True;";
-        
         [Fact]
         public void EnsureCreatedAndSeeded_Called_CreatesTables()
         {

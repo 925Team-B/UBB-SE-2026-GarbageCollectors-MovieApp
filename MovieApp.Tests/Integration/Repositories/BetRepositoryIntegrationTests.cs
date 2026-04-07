@@ -1,39 +1,39 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class BetRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly BetRepository _repo;
-        private readonly MovieRepository _movieRepo;
-        private readonly BattleRepository _battleRepo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly BetRepository repo;
+        private readonly MovieRepository movieRepo;
+        private readonly BattleRepository battleRepo;
 
         public BetRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_Bet_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_Bet_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new BetRepository(_connectionString);
-            _movieRepo = new MovieRepository(_connectionString);
-            _battleRepo = new BattleRepository(_connectionString);
+            repo = new BetRepository(connectionString);
+            movieRepo = new MovieRepository(connectionString);
+            battleRepo = new BattleRepository(connectionString);
 
             ClearTables();
         }
 
         private void ClearTables()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM Bet", conn).ExecuteNonQuery();
@@ -49,12 +49,12 @@ namespace MovieApp.Tests.Integration.Repositories
             {
                 Title = title,
                 Year = year,
-                PosterUrl = title.Replace(" ", "") + ".jpg",
+                PosterUrl = title.Replace(" ", string.Empty) + ".jpg",
                 Genre = genre,
                 AverageRating = rating
             };
 
-            int id = _movieRepo.Insert(movie);
+            int id = movieRepo.Insert(movie);
             movie.MovieId = id;
             return movie;
         }
@@ -72,7 +72,7 @@ namespace MovieApp.Tests.Integration.Repositories
                 Status = status
             };
 
-            int id = _battleRepo.Insert(battle);
+            int id = battleRepo.Insert(battle);
             battle.BattleId = id;
             return battle;
         }
@@ -91,10 +91,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -115,11 +115,11 @@ END", conn);
                 Amount = 50
             };
 
-            bool inserted = _repo.Insert(bet);
+            bool inserted = repo.Insert(bet);
 
             Assert.True(inserted);
 
-            var result = _repo.GetById(1, battle.BattleId);
+            var result = repo.GetById(1, battle.BattleId);
             Assert.NotNull(result);
             Assert.Equal(50, result!.Amount);
             Assert.Equal(firstMovie.MovieId, result.Movie!.MovieId);
@@ -140,7 +140,7 @@ END", conn);
                 Amount = 20
             };
 
-            Assert.Throws<InvalidOperationException>(() => _repo.Insert(bet));
+            Assert.Throws<InvalidOperationException>(() => repo.Insert(bet));
         }
 
         [Fact]
@@ -153,7 +153,7 @@ END", conn);
             var battle1 = CreateBattle(firstMovie, secondMovie, "Active");
             var battle2 = CreateBattle(secondMovie, thirdMovie, "Active");
 
-            _repo.Insert(new Bet
+            repo.Insert(new Bet
             {
                 User = ExistingUser(1),
                 Battle = battle1,
@@ -161,7 +161,7 @@ END", conn);
                 Amount = 10
             });
 
-            _repo.Insert(new Bet
+            repo.Insert(new Bet
             {
                 User = ExistingUser(2),
                 Battle = battle2,
@@ -169,7 +169,7 @@ END", conn);
                 Amount = 30
             });
 
-            var bets = _repo.GetAll();
+            var bets = repo.GetAll();
 
             Assert.Equal(2, bets.Count);
         }
@@ -181,7 +181,7 @@ END", conn);
             var secondMovie = CreateMovie("Movie B", 2021, "Drama", 8.0);
             var battle = CreateBattle(firstMovie, secondMovie, "Active");
 
-            _repo.Insert(new Bet
+            repo.Insert(new Bet
             {
                 User = ExistingUser(1),
                 Battle = battle,
@@ -189,7 +189,7 @@ END", conn);
                 Amount = 70
             });
 
-            var result = _repo.GetById(1, battle.BattleId);
+            var result = repo.GetById(1, battle.BattleId);
 
             Assert.NotNull(result);
             Assert.Equal(70, result!.Amount);
@@ -201,7 +201,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingBet_ReturnsNull()
         {
-            var result = _repo.GetById(999, 999);
+            var result = repo.GetById(999, 999);
 
             Assert.Null(result);
         }
@@ -221,16 +221,16 @@ END", conn);
                 Amount = 25
             };
 
-            _repo.Insert(bet);
+            repo.Insert(bet);
 
             bet.Movie = secondMovie;
             bet.Amount = 90;
 
-            bool updated = _repo.Update(bet);
+            bool updated = repo.Update(bet);
 
             Assert.True(updated);
 
-            var result = _repo.GetById(1, battle.BattleId);
+            var result = repo.GetById(1, battle.BattleId);
             Assert.NotNull(result);
             Assert.Equal(90, result!.Amount);
             Assert.Equal(secondMovie.MovieId, result.Movie!.MovieId);
@@ -251,7 +251,7 @@ END", conn);
                 Amount = 40
             };
 
-            bool updated = _repo.Update(bet);
+            bool updated = repo.Update(bet);
 
             Assert.False(updated);
         }
@@ -263,7 +263,7 @@ END", conn);
             var secondMovie = CreateMovie("Movie B", 2021, "Drama", 8.0);
             var battle = CreateBattle(firstMovie, secondMovie, "Active");
 
-            _repo.Insert(new Bet
+            repo.Insert(new Bet
             {
                 User = ExistingUser(1),
                 Battle = battle,
@@ -271,16 +271,16 @@ END", conn);
                 Amount = 35
             });
 
-            bool deleted = _repo.Delete(1, battle.BattleId);
+            bool deleted = repo.Delete(1, battle.BattleId);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(1, battle.BattleId));
+            Assert.Null(repo.GetById(1, battle.BattleId));
         }
 
         [Fact]
         public void Delete_NonExistingBet_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999, 999);
+            bool deleted = repo.Delete(999, 999);
 
             Assert.False(deleted);
         }
@@ -295,7 +295,7 @@ END", conn);
             var battle1 = CreateBattle(firstMovie, secondMovie, "Active");
             var battle2 = CreateBattle(secondMovie, thirdMovie, "Active");
 
-            _repo.Insert(new Bet
+            repo.Insert(new Bet
             {
                 User = ExistingUser(1),
                 Battle = battle1,
@@ -303,7 +303,7 @@ END", conn);
                 Amount = 10
             });
 
-            _repo.Insert(new Bet
+            repo.Insert(new Bet
             {
                 User = ExistingUser(2),
                 Battle = battle1,
@@ -311,7 +311,7 @@ END", conn);
                 Amount = 20
             });
 
-            _repo.Insert(new Bet
+            repo.Insert(new Bet
             {
                 User = ExistingUser(3),
                 Battle = battle2,
@@ -319,11 +319,11 @@ END", conn);
                 Amount = 30
             });
 
-            _repo.DeleteByBattleId(battle1.BattleId);
+            repo.DeleteByBattleId(battle1.BattleId);
 
-            Assert.Null(_repo.GetById(1, battle1.BattleId));
-            Assert.Null(_repo.GetById(2, battle1.BattleId));
-            Assert.NotNull(_repo.GetById(3, battle2.BattleId));
+            Assert.Null(repo.GetById(1, battle1.BattleId));
+            Assert.Null(repo.GetById(2, battle1.BattleId));
+            Assert.NotNull(repo.GetById(3, battle2.BattleId));
         }
     }
 }

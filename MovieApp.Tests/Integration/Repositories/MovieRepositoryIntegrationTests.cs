@@ -1,34 +1,34 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System;
+using Microsoft.Data.SqlClient;
 using MovieApp.Core.Models;
 using MovieApp.Core.Repositories;
-using System;
 using Xunit;
 
 namespace MovieApp.Tests.Integration.Repositories
 {
     public class MovieRepositoryIntegrationTests : IDisposable
     {
-        private readonly string _databaseName;
-        private readonly string _connectionString;
-        private readonly MovieRepository _repo;
+        private readonly string databaseName;
+        private readonly string connectionString;
+        private readonly MovieRepository repo;
 
         public MovieRepositoryIntegrationTests()
         {
-            _databaseName = "MovieAppTestDb_Movie_" + Guid.NewGuid().ToString("N");
+            databaseName = "MovieAppTestDb_Movie_" + Guid.NewGuid().ToString("N");
 
-            _connectionString =
-                $"Server=.\\SQLEXPRESS;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
+            connectionString =
+                $"Server=.\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(connectionString);
             initializer.EnsureCreatedAndSeeded();
 
-            _repo = new MovieRepository(_connectionString);
+            repo = new MovieRepository(connectionString);
             ClearMovieTable();
         }
 
         private void ClearMovieTable()
         {
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             new SqlCommand("DELETE FROM Bet", conn).ExecuteNonQuery();
@@ -47,10 +47,10 @@ namespace MovieApp.Tests.Integration.Repositories
             conn.Open();
 
             using var cmd = new SqlCommand($@"
-IF DB_ID('{_databaseName}') IS NOT NULL
+IF DB_ID('{databaseName}') IS NOT NULL
 BEGIN
-    ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [{_databaseName}];
+    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{databaseName}];
 END", conn);
 
             cmd.ExecuteNonQuery();
@@ -68,11 +68,11 @@ END", conn);
                 AverageRating = 8.5
             };
 
-            int id = _repo.Insert(movie);
+            int id = repo.Insert(movie);
 
             Assert.True(id > 0);
 
-            var insertedMovie = _repo.GetById(id);
+            var insertedMovie = repo.GetById(id);
             Assert.NotNull(insertedMovie);
             Assert.Equal("Test Movie", insertedMovie!.Title);
         }
@@ -80,7 +80,7 @@ END", conn);
         [Fact]
         public void GetAll_WhenMoviesExist_ReturnsMovies()
         {
-            _repo.Insert(new Movie
+            repo.Insert(new Movie
             {
                 Title = "Movie 1",
                 Year = 2021,
@@ -89,7 +89,7 @@ END", conn);
                 AverageRating = 7.2
             });
 
-            _repo.Insert(new Movie
+            repo.Insert(new Movie
             {
                 Title = "Movie 2",
                 Year = 2022,
@@ -98,7 +98,7 @@ END", conn);
                 AverageRating = 6.8
             });
 
-            var movies = _repo.GetAll();
+            var movies = repo.GetAll();
 
             Assert.Equal(2, movies.Count);
         }
@@ -115,9 +115,9 @@ END", conn);
                 AverageRating = 9.1
             };
 
-            int id = _repo.Insert(movie);
+            int id = repo.Insert(movie);
 
-            var result = _repo.GetById(id);
+            var result = repo.GetById(id);
 
             Assert.NotNull(result);
             Assert.Equal(id, result!.MovieId);
@@ -127,7 +127,7 @@ END", conn);
         [Fact]
         public void GetById_NonExistingMovie_ReturnsNull()
         {
-            var result = _repo.GetById(999999);
+            var result = repo.GetById(999999);
 
             Assert.Null(result);
         }
@@ -144,7 +144,7 @@ END", conn);
                 AverageRating = 5.5
             };
 
-            int id = _repo.Insert(movie);
+            int id = repo.Insert(movie);
 
             movie.MovieId = id;
             movie.Title = "New Title";
@@ -153,11 +153,11 @@ END", conn);
             movie.Genre = "Thriller";
             movie.AverageRating = 8.9;
 
-            bool updated = _repo.Update(movie);
+            bool updated = repo.Update(movie);
 
             Assert.True(updated);
 
-            var updatedMovie = _repo.GetById(id);
+            var updatedMovie = repo.GetById(id);
             Assert.NotNull(updatedMovie);
             Assert.Equal("New Title", updatedMovie!.Title);
             Assert.Equal(2023, updatedMovie.Year);
@@ -179,7 +179,7 @@ END", conn);
                 AverageRating = 4.4
             };
 
-            bool updated = _repo.Update(movie);
+            bool updated = repo.Update(movie);
 
             Assert.False(updated);
         }
@@ -196,18 +196,18 @@ END", conn);
                 AverageRating = 6.5
             };
 
-            int id = _repo.Insert(movie);
+            int id = repo.Insert(movie);
 
-            bool deleted = _repo.Delete(id);
+            bool deleted = repo.Delete(id);
 
             Assert.True(deleted);
-            Assert.Null(_repo.GetById(id));
+            Assert.Null(repo.GetById(id));
         }
 
         [Fact]
         public void Delete_NonExistingMovie_ReturnsFalse()
         {
-            bool deleted = _repo.Delete(999999);
+            bool deleted = repo.Delete(999999);
 
             Assert.False(deleted);
         }
